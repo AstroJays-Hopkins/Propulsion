@@ -177,7 +177,7 @@ g_force = acceleration_FS/9.81;
 figure(5)
 hold on
 plot(time, g_force, 'k');
-axis([0, timesteps, min(g_force), max(g_force)]);
+axis([0, t_burn, min(g_force), max(g_force)]);
 xlabel('time (s)');
 ylabel('G Force (g)');
 hold off
