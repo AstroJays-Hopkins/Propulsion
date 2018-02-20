@@ -39,7 +39,7 @@ A_e = A_star*ER;
 D_star = sqrt(4*A_star/3.1415);
 D_e = sqrt(4*A_e/3.1415);
 
-rdot_estimate = 0.0012; %average regression rate = 1.2 mm/s, from Aspire Space
+rdot_estimate = 0.0012*1.5; %average regression rate = 1.2 mm/s, from Aspire Space
 G_max = 600; %maximum estimated mass flux through port to avoid flameout, kg/m^2*s
 rin_fuel = sqrt((1/G_max)/3.1415);
 rout_fuel = rin_fuel+rdot_estimate*t_burn; %outer radius of fuel, 3in
@@ -92,45 +92,44 @@ end
     
 Isp = T(2)/(mdot_total(2)*9.81)
 
-figure(1)
-hold on
-plot((1:t_burn/deltat)*deltat, T, 'r');
-axis([0, 9, 0, max(T)]);
-xlabel('Time (s)');
-ylabel('Thrust (N)')
-hold off
-
-figure(2)
-plot((1:t_burn/deltat)*deltat, OFR, 'r');
-axis([0, 9, 0, max(OFR)]);
-xlabel('Time (s)');
-ylabel('Oxidizer to Fuel Ratio')
-hold off
-
-figure(3)
-plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
-axis([0, 9, 0, max(rdot)*1000]);
-xlabel('Time (s)');
-ylabel('Regression rate (mm/s)')
-hold off
+% figure(1)
+% hold on
+% plot((1:t_burn/deltat)*deltat, T, 'r');
+% axis([0, 9, 0, max(T)]);
+% xlabel('Time (s)');
+% ylabel('Thrust (N)')
+% hold off
+% 
+% figure(2)
+% plot((1:t_burn/deltat)*deltat, OFR, 'r');
+% axis([0, 9, 0, max(OFR)]);
+% xlabel('Time (s)');
+% ylabel('Mass flow rate (kg/s)')
+% hold off
+% 
+% figure(3)
+% plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
+% axis([0, 9, 0, max(rdot)*1000]);
+% xlabel('Time (s)');
+% ylabel('Regression rate (mm/s)')
+% hold off
 
 %% Flight Sim
-flight_time = 45; %seconds
-timesteps = flight_time/deltat;
+time_total = 30; %seconds
+timesteps = time_total/deltat;
 time = linspace(0, timesteps*deltat, timesteps);
 
 acceleration_FS = zeros(1, timesteps);
 altitude_FS = zeros(1, timesteps); %initial altitude
 velocity_FS = zeros(1, timesteps); %initial velocity
-CA = 3.1415 * 0.0762^2; %6in DIA, cross sectional area of rocket
+CA = 3.1415 * 0.0762^2; %cross sectional area of rocket
 CD = 0.75; %from https://spaceflightsystems.grc.nasa.gov/education/rocket/shaped.html
 
 m_pl = 4; %payload mass, kg
 m_structure = 15; %mass of structure and engine
-m_fuelox_FS = m_fuel + m_ox;
-
 m_total_FS = zeros(1, timesteps);
-m_total_FS(1) = m_pl + m_structure + m_fuelox_FS;
+m_fuel_FS = m_fuel + m_ox
+m_total_FS(1) = m_pl + m_structure + m_fuel_FS;
 
 F_total = zeros(1, timesteps);
 F_T = zeros(1, timesteps);
@@ -138,46 +137,46 @@ F_d = zeros(1, timesteps);
 
 for t = 2:timesteps
     if altitude_FS(t-1) >= 0
-        m_total_FS(t) = m_pl + m_structure + m_fuelox_FS;
+        m_total_FS(t) = m_pl + m_structure + m_fuel_FS;
         
-        if t <= length(T)
-            F_T(t) = T(t) - (P_e - 101000) * A_e + (P_e - pressurelookup_SI(altitude_FS(t-1))) * A_e;
+        if timesteps <= length(T)
+            F_T(t) = T(t) - (P_e - 101000) * A_e + (P_e - pressurelookup_SI(altitude(t)) * A_e;
         end
 
-        if velocity_FS(t-1) ~= 0
-            F_d(t) = 0.5 * CD * densitylookup_SI(altitude_FS(t-1)) * CA * (velocity_FS(t-1)^2)*(-velocity_FS(t-1)/abs(velocity_FS(t-1)));
+        if velocity(t-1) ~= 0
+            F_d(t) = 0.5 * CD * densitylookup_SI(altitude(t-1)) * CA * (velocity(t-1)^2)*(-velocity(t-1)/abs(velocity(t-1)));
         end
 
         F_g = -m_total_FS(t) * 9.81;
         F_total(t) = F_T(t) + F_g + F_d(t);
-        acceleration_FS(t) = F_total(t)/m_total_FS(t);
+        acceleration_FS(t) = F_total(t)/m_total(t);
         velocity_FS(t) = velocity_FS(t-1) + (acceleration_FS(t) * deltat);
         altitude_FS(t) = altitude_FS(t-1) + (velocity_FS(t) * deltat);
 
-        if t <= length(T)
-            m_fuelox_FS = m_fuelox_FS - mdot_total(t)*deltat;
+        if m_fuel_FS > 0
+            m_fuel_FS = m_fuel_FS - mdot_total(t)*deltat;
         end
         
-    elseif altitude_FS(t-1) < 0
+    elseif altitude(t-1) < 0
         break
     end
         
 end
 
-figure(4)
+figure(1)
 hold on
 plot(time, altitude_FS, 'r')
-axis([0, flight_time, 0, max(altitude_FS)]);
+axis([0, t/10, 0, max(altitude_FS)]);
 xlabel('time (s)');
 ylabel('altitude (m)');
 hold off
 
 g_force = acceleration_FS/9.81;
 
-figure(5)
+figure(2)
 hold on
 plot(time, g_force, 'k');
-axis([0, timesteps, min(g_force), max(g_force)]);
+axis([0, t_burn, min(g_force), max(g_force)]);
 xlabel('time (s)');
 ylabel('G Force (g)');
 hold off
