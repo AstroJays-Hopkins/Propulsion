@@ -27,7 +27,7 @@ M_e = u_e/c_e; %Mach number of exhaust
 ER = (1/M_e)*sqrt(((1+((k_e-1)/2)*M_e^2)/(1+(k_e-1)/2))^((k_e+1)/(k_e-1))); %Expansion ratio of nozzle
 OF = 7; %7:1 oxidizer:fuel ratio
 
-t_burn = 10;
+t_burn = 13;
 Thrust_max = 3000; %average thrust based on 30K MASA rocket
 mdot_estimate = Thrust_max/u_e; %total mass flow rate estimate
 m_total = mdot_estimate*t_burn;
@@ -87,24 +87,24 @@ for i = 1:t_burn/deltat
     I_total = I_total + T(i)*deltat;
 end
     
-figure(1)
-hold on
-plot((1:t_burn/deltat)*deltat, T, 'r');
-axis([0, 9, 0, max(T)]);
-xlabel('Time (s)');
-ylabel('Thrust (N)')
-hold off
-
-figure(2)
-plot((1:t_burn/deltat)*deltat, OFR, 'r');
-axis([0, 9, 0, max(OFR)]);
-xlabel('Time (s)');
-ylabel('Mass flow rate (kg/s)')
-hold off
-
-figure(3)
-plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
-axis([0, 9, 0, max(rdot)*1000]);
-xlabel('Time (s)');
-ylabel('Regression rate (mm/s)')
-hold off
+% figure(1)
+% hold on
+% plot((1:t_burn/deltat)*deltat, T, 'r');
+% axis([0, 9, 0, max(T)]);
+% xlabel('Time (s)');
+% ylabel('Thrust (N)')
+% hold off
+% 
+% figure(2)
+% plot((1:t_burn/deltat)*deltat, OFR, 'r');
+% axis([0, 9, 0, max(OFR)]);
+% xlabel('Time (s)');
+% ylabel('Mass flow rate (kg/s)')
+% hold off
+% 
+% figure(3)
+% plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
+% axis([0, 9, 0, max(rdot)*1000]);
+% xlabel('Time (s)');
+% ylabel('Regression rate (mm/s)')
+% hold off

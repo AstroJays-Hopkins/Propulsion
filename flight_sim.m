@@ -1,9 +1,7 @@
-t_burn = 10;
-mdot = 12.5723/t_burn; %total mass flow rate, kg/s
+t_burn = 13;
+mdot = 16.344/t_burn; %total mass flow rate, kg/s
 P_e = pressurelookup_SI(2268);
 u_e = 2386; %m/s
-
-%average thrust of MASA rocket =  2400N
 
 timesteps = 3000; %total time = timesteps * deltat
 deltat = 0.1; %time step, s
@@ -66,7 +64,7 @@ g_force = a/9.81;
 figure(2)
 hold on
 plot(time, g_force, 'k');
-axis([0, t/10, min(g_force), max(g_force)]);
+axis([0, t_burn, min(g_force), max(g_force)]);
 xlabel('time (s)');
 ylabel('G Force (g)');
 hold off
