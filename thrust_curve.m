@@ -165,13 +165,13 @@ for t = 2:timesteps
         
 end
 
-figure(4)
-hold on
-plot(time, altitude_FS, 'r')
-axis([0, flight_time, 0, max(altitude_FS)]);
-xlabel('time (s)');
-ylabel('altitude (m)');
-hold off
+% figure(4)
+% hold on
+% plot(time, altitude_FS, 'r')
+% axis([0, flight_time, 0, max(altitude_FS)]);
+% xlabel('time (s)');
+% ylabel('altitude (m)');
+% hold off
 
 g_force = acceleration_FS/9.81;
 
