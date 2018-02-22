@@ -1,4 +1,5 @@
-MOTOR PARAMETERS CALCULATED BY thrust_curve.m
+ASTROJAYS
+BJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m
 Updated Feb 22, 2018
 
 
@@ -39,7 +40,7 @@ Propellant Mass (kg): 2.060229
 Oxizider Mass (kg): 14.421606
 Estimated Ox Mass Flow Rate (kg/s): 1.109354
 Initial Inner Port Radius (m): 0.023033
-Outer Propellant Diameter (m): 0.038633
+Outer Propellant Radius (m): 0.038633
 Length of Propellant Grain (m): 0.729109
 
 Expansion Ratio: 5.816238
