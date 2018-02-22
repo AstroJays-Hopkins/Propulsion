@@ -49,8 +49,8 @@ L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2)));
 
 r_tank = 0.0762; %3in to m
 U = 0.15; %percent ullage
-rho_n2o_l = 772.25; %density of n2o liquid, kg/m^3
-rho_n2o_v = 1.834; %density of n2o vapour, kg/m^3
+rho_n2o_l = 786.6; %FOR T=20ºC, density of n2o liquid, kg/m^3
+rho_n2o_v = 159.4; %FOR T=20ºC, density of n2o vapour, kg/m^3
 L_tank = (m_ox - (rho_n2o_v*U + rho_n2o_l*(1-U))*((4/3)*3.1415*r_tank^3))/((rho_n2o_v*U + rho_n2o_l*(1-U))*(3.1415*r_tank^2));
 
 %% thrust curve estimation, sea level
