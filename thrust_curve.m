@@ -91,29 +91,29 @@ for i = 1:t_burn/deltat
     I_total = I_total + T(i)*deltat;
 end
     
-Isp = T(2)/(mdot_total(2)*9.81)
+Isp = T(2)/(mdot_total(2)*9.81) %ProPep3 
 
-% figure(1)
-% hold on
-% plot((1:t_burn/deltat)*deltat, T, 'r');
-% axis([0, 9, 0, max(T)]);
-% xlabel('Time (s)');
-% ylabel('Thrust (N)')
-% hold off
-% 
-% figure(2)
-% plot((1:t_burn/deltat)*deltat, OFR, 'r');
-% axis([0, 9, 0, max(OFR)]);
-% xlabel('Time (s)');
-% ylabel('Oxidizer to Fuel Ratio')
-% hold off
-% 
-% figure(3)
-% plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
-% axis([0, 9, 0, max(rdot)*1000]);
-% xlabel('Time (s)');
-% ylabel('Regression rate (mm/s)')
-% hold off
+figure(1)
+hold on
+plot((1:t_burn/deltat)*deltat, T, 'r');
+axis([0, 9, 0, max(T)]);
+xlabel('Time (s)');
+ylabel('Thrust (N)')
+hold off
+
+figure(2)
+plot((1:t_burn/deltat)*deltat, OFR, 'r');
+axis([0, 9, 0, max(OFR)]);
+xlabel('Time (s)');
+ylabel('Oxidizer to Fuel Ratio')
+hold off
+
+figure(3)
+plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
+axis([0, 9, 0, max(rdot)*1000]);
+xlabel('Time (s)');
+ylabel('Regression rate (mm/s)')
+hold off
 
 %% Flight Sim
 flight_time = 45; %seconds
@@ -165,28 +165,28 @@ for t = 2:timesteps
         
 end
 
-% figure(4)
-% hold on
-% plot(time, altitude_FS, 'r')
-% axis([0, flight_time, 0, max(altitude_FS)]);
-% xlabel('time (s)');
-% ylabel('altitude (m)');
-% hold off
+figure(4)
+hold on
+plot(time, altitude_FS, 'r')
+axis([0, flight_time, 0, max(altitude_FS)]);
+xlabel('time (s)');
+ylabel('altitude (m)');
+hold off
 
 g_force = acceleration_FS/9.81;
 
-% figure(5)
-% hold on
-% plot(time, g_force, 'k');
-% axis([0, t_burn, min(g_force), max(g_force)]);
-% xlabel('time (s)');
-% ylabel('G Force (g)');
-% hold off
+figure(5)
+hold on
+plot(time, g_force, 'k');
+axis([0, t_burn, min(g_force), max(g_force)]);
+xlabel('time (s)');
+ylabel('G Force (g)');
+hold off
 
-% figure(6)
-% hold on
-% plot(time, velocity_FS/343, 'r');
-% axis([0, flight_time, 0, 2]);
-% xlabel('time (s)');
-% ylabel('Ma');
-% hold off
+figure(6)
+hold on
+plot(time, velocity_FS/343, 'r');
+axis([0, flight_time, 0, 2]);
+xlabel('time (s)');
+ylabel('Ma');
+hold off
