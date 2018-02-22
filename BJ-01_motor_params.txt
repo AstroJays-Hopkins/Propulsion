@@ -1,0 +1,54 @@
+ASTROJAYS
+BJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m
+Updated Feb 22, 2018
+
+
+
+GENERAL MOTOR PERFORMANCE
+**************************************************************
+Isp (s): 238.856756	Total Impulse (N.s); 37198.862152
+Burn Time (s): 13.000000	Max Thrust (N): 3000.000000
+OF Ratio: 7.000000
+Flight Ceiling, VERY rough esimate (m): 10129.048203
+Maximum G Force (g): 5.731887
+**************************************************************
+
+
+ISENTROPIC FLOW CALCULATIONS
+**************************************************************
+CHAMBER CONDITIONS:
+
+Pressure (Pa): 3700000.000000	Temperature (K): 3280.713000
+Velocity (m/s): 0
+**************************************************************
+THROAT CONDITIONS:
+
+Pressure (Pa): 2056014.677333	Temperature (K): 2921.382903
+Velocity (m/s): 1088.220771	Density (kg/m^3): 2.163268
+**************************************************************
+NOZZLE EXIT CONDITIONS:
+
+Pressure (Pa): 84690.000000	Temperature (K): 1521.873506
+Velocity (m/s): 2366.241239
+**************************************************************
+
+
+
+ENGINE DESIGN PARAMETERS
+**************************************************************
+Propellant Mass (kg): 2.060229
+Oxizider Mass (kg): 14.421606
+Estimated Ox Mass Flow Rate (kg/s): 1.109354
+Initial Inner Port Radius (m): 0.023033
+Outer Propellant Radius (m): 0.038633
+Length of Propellant Grain (m): 0.729109
+
+Expansion Ratio: 5.816238
+Inlet Diameter (m): 0.052373
+Throat Diameter (m): 0.026187
+Exit Diameter (m): 0.063154
+**************************************************************
+
+
+
+END OUTPUT
