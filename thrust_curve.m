@@ -17,7 +17,7 @@ u_star = c_star; %M=1 at throat
 rho_star = k_c*P_star/(c_star^2);
 
 %EXHAUST
-P_e = pressurelookup_SI(2286); %pressure at nozzle exit (chosen parameter, P(7500ft, mid-burn))
+P_e = pressurelookup_SI(1500); %pressure at nozzle exit (P(1500m, mid-burn))
 T_e = T_star*(P_e/P_star)^((k_e-1)/k_e); %NEED TO DEFINE AMBIENT PRESSURE
 c_e = sqrt(k_e*R*T_e); %speed of sound at nozzle exit
 u_e = sqrt(((2*k_e*R*T_star*(1-(P_e/P_star)^((k_e-1)/k_e)))/(k_e-1))+u_star^2); %gas velocity of exhaust
@@ -71,7 +71,8 @@ Go = zeros(1, t_burn/deltat);
 a = 0.002265;
 n = 1;
 
-correction_factor = 0.975; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
+conical_nozzle_correction_factor = 0.983; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
+Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 
 for t = 2:t_burn/deltat
    Go(t) = mdot_ox/(3.1415*r(t-1)^2); %calculate oxizider mass flux
@@ -79,7 +80,7 @@ for t = 2:t_burn/deltat
    
    mdot_fuel(t) = 970*2*3.1415*r(t-1)*rdot(t)*L_fuel;
    mdot_total(t) = mdot_ox + mdot_fuel(t);
-   T(t) = (mdot_total(t) * u_e)*correction_factor - (P_e - 101000) * A_e; %Calculate thrust
+   T(t) = (mdot_total(t) * u_e)*conical_nozzle_correction_factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e - 101000) * A_e; %Calculate thrust
    r(t) = r(t-1) + rdot(t)*deltat; %Calculate new radius of fuel port
    
    OFR(t) = mdot_ox/mdot_fuel(t); %Oxidizer to fuel ratio
@@ -92,27 +93,27 @@ end
     
 Isp = T(2)/(mdot_total(2)*9.81)
 
-figure(1)
-hold on
-plot((1:t_burn/deltat)*deltat, T, 'r');
-axis([0, 9, 0, max(T)]);
-xlabel('Time (s)');
-ylabel('Thrust (N)')
-hold off
-
-figure(2)
-plot((1:t_burn/deltat)*deltat, OFR, 'r');
-axis([0, 9, 0, max(OFR)]);
-xlabel('Time (s)');
-ylabel('Oxidizer to Fuel Ratio')
-hold off
-
-figure(3)
-plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
-axis([0, 9, 0, max(rdot)*1000]);
-xlabel('Time (s)');
-ylabel('Regression rate (mm/s)')
-hold off
+% figure(1)
+% hold on
+% plot((1:t_burn/deltat)*deltat, T, 'r');
+% axis([0, 9, 0, max(T)]);
+% xlabel('Time (s)');
+% ylabel('Thrust (N)')
+% hold off
+% 
+% figure(2)
+% plot((1:t_burn/deltat)*deltat, OFR, 'r');
+% axis([0, 9, 0, max(OFR)]);
+% xlabel('Time (s)');
+% ylabel('Oxidizer to Fuel Ratio')
+% hold off
+% 
+% figure(3)
+% plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
+% axis([0, 9, 0, max(rdot)*1000]);
+% xlabel('Time (s)');
+% ylabel('Regression rate (mm/s)')
+% hold off
 
 %% Flight Sim
 flight_time = 45; %seconds
@@ -126,7 +127,7 @@ CA = 3.1415 * 0.0762^2; %6in DIA, cross sectional area of rocket
 CD = 0.75; %from https://spaceflightsystems.grc.nasa.gov/education/rocket/shaped.html
 
 m_pl = 4; %payload mass, kg
-m_structure = 15; %mass of structure and engine
+m_structure = 25; %mass of structure and engine
 m_fuelox_FS = m_fuel + m_ox;
 
 m_total_FS = zeros(1, timesteps);
@@ -164,20 +165,28 @@ for t = 2:timesteps
         
 end
 
-figure(4)
-hold on
-plot(time, altitude_FS, 'r')
-axis([0, flight_time, 0, max(altitude_FS)]);
-xlabel('time (s)');
-ylabel('altitude (m)');
-hold off
+% figure(4)
+% hold on
+% plot(time, altitude_FS, 'r')
+% axis([0, flight_time, 0, max(altitude_FS)]);
+% xlabel('time (s)');
+% ylabel('altitude (m)');
+% hold off
 
 g_force = acceleration_FS/9.81;
 
-figure(5)
-hold on
-plot(time, g_force, 'k');
-axis([0, t_burn, min(g_force), max(g_force)]);
-xlabel('time (s)');
-ylabel('G Force (g)');
-hold off
+% figure(5)
+% hold on
+% plot(time, g_force, 'k');
+% axis([0, t_burn, min(g_force), max(g_force)]);
+% xlabel('time (s)');
+% ylabel('G Force (g)');
+% hold off
+
+% figure(6)
+% hold on
+% plot(time, velocity_FS/343, 'r');
+% axis([0, flight_time, 0, 2]);
+% xlabel('time (s)');
+% ylabel('Ma');
+% hold off
