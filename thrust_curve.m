@@ -51,6 +51,7 @@ r_tank = 0.0762; %3in to m
 U = 0.15; %percent ullage
 rho_n2o_l = 786.6; %FOR T=20ºC, density of n2o liquid, kg/m^3
 rho_n2o_v = 159.4; %FOR T=20ºC, density of n2o vapour, kg/m^3
+P_tank = 5060000; % FOR T=20ºC, run tank pressure, Pa, Assuming P_runtank = P_vap of the N2O
 L_tank = (m_ox - (rho_n2o_v*U + rho_n2o_l*(1-U))*((4/3)*3.1415*r_tank^3))/((rho_n2o_v*U + rho_n2o_l*(1-U))*(3.1415*r_tank^2));
 
 %% thrust curve estimation, sea level
@@ -66,6 +67,9 @@ r = zeros(1, t_burn/deltat);
 r(1) = rin_fuel;
 rdot = zeros(1, t_burn/deltat);
 Go = zeros(1, t_burn/deltat);
+
+%quick injector orifice diameter calc
+d_inj = ( (((4*mdot_ox)/pi)^2) / ((rho_n2o_l^2)*(P_tank - P_c)))^0.25; % calculates injector orifice diameter, m
 
 %regression rate formula: rdot = a*Go^n
 a = 0.002265;
