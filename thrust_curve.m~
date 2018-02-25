@@ -169,7 +169,7 @@ end
 
 figure(2)
 hold on
-subplot(3,1,1)
+subplot(2,1,1)
 plot(time, altitude_FS, 'r')
 axis([0, flight_time, 0, max(altitude_FS)]);
 title('BJ-01 Flight Trajectory');
@@ -182,20 +182,21 @@ for t = 1:timesteps
     Ma(t) = velocity_FS(t)/c;
 end
     
-subplot(3,1,2)   
+subplot(2,1,3)   
 plot(time, Ma, 'r');
 axis([0, flight_time, 0, 2]);
 title('Mach Number');
 xlabel('time (s)');
 ylabel('Ma');
+hold off
 
 
 g_force = acceleration_FS/9.81;
 
-subplot(3,1,3)
+figure(3)
+hold on
 plot(time, g_force, 'k');
-axis([0, flight_time, min(g_force), max(g_force)]);
-title('G Forces')
+axis([0, t_burn, min(g_force), max(g_force)]);
+title
 xlabel('time (s)');
 ylabel('G Force (g)');
-hold off
