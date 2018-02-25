@@ -8,6 +8,7 @@ k_e = 1.257; %ratio of specific heats of exhaust constituents, from ProPep3
 MM = 25.781; %Molecular mass of combustion constituents, g/mol
 R_prime = 8.314; % Universal gas constant,J/mol*K
 R = R_prime*1000/MM; %combustion gas constant, J/kg*K
+%changes
 
 %THROAT
 T_star = T_c*(1+(k_c-1)/2)^-1;
