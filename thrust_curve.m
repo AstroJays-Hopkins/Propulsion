@@ -48,12 +48,12 @@ rout_fuel = rin_fuel+rdot_estimate*t_burn; %outer radius of fuel, 3in
 rho_fuel = 935; %kg/m^3
 L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2)));
 
-r_tank = 0.0762; %3in to m
+r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
 U = 0.15; %percent ullage
 rho_n2o_l = 786.6; %FOR T=20ºC, density of n2o liquid, kg/m^3
 rho_n2o_v = 159.4; %FOR T=20ºC, density of n2o vapour, kg/m^3
 P_tank = 5060000; % FOR T=20ºC, run tank pressure, Pa, Assuming P_runtank = P_vap of the N2O
-L_tank = (m_ox - (rho_n2o_v*U + rho_n2o_l*(1-U))*((4/3)*3.1415*r_tank^3))/((rho_n2o_v*U + rho_n2o_l*(1-U))*(3.1415*r_tank^2));
+L_tank = (m_ox/(pi*(r_tank^2)*((rho_n2o_v*U)+(rho_n2o_l*(1-U))))) - ((4/3)*r_tank); % assumes cylindrical tank with 2 hemispherical end caps
 
 %% thrust curve estimation, sea level
 deltat = 0.1; %time step for simulation
