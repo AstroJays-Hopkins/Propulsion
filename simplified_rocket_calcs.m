@@ -1,4 +1,4 @@
-clc,close all
+
 
 % Assumptions
 % -Thrust is constant and steady throughout burn
