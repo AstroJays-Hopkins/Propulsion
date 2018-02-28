@@ -1,3 +1,16 @@
+%BJ-01 Hybrid Engine Development - HDPE + N2O
+%COPYRIGHT ASTROJAYS 2018
+%
+%Structure of script:
+%1. Initialization of constants and vectors
+%2. Initial isentropic calculations to estimate engine size parameters
+%3. Engine size estimates
+%4. Thrust curve estimate
+%5. Recalculate engine sizing
+%6. Plot engine performance
+%7. Flight sm
+%8. Plot flight simulation results
+
 %% INITIALIZATION
 %constant initialization
 C_characteristic = 1550; %characteristic exhaust velocity (set by propep3), m/s
