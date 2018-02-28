@@ -5,7 +5,7 @@ k_c = 1.246; %ratio of specific heats of combustion chamber constituents, from P
 k_e = 1.257; %ratio of specific heats of exhaust constituents, from ProPep3
 P_drop = 0.6666666; %fraction of Run Tank pressure after emptying
 t_burn = 13;
-deltat = 0.1; %time step for simulation
+deltat = 0.01; %time step for simulation
 
 
 MM = 25.781; %Molecular mass of combustion constituents, g/mol
@@ -85,12 +85,13 @@ CR = 4; %Contraction ratio
 %% thrust curve estimation, sea level
 %Vector initialization
 r(1) = rin_fuel;
-P_c(1) = 3.7e6; %Combustion chamber pressure equal to atmospheric at start
+P_c(1) = 0.1013e6; %Combustion chamber pressure equal to atmospheric at start
 P_RT(1) = 5.06e6; %Run tank pressure, 50 bar
 deltaP(1) = P_RT(1) - P_c(1);
 
 %Injector orifice diameter calc
-r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*(deltaP(1)))*pi)); % calculates injector orifice radius, m
+r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*((5.06-3.7)*10^6))*pi)); % calculates injector orifice radius, m
+% r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*(deltaP(1)))*pi)); % calculates injector orifice radius, m
 A_inj = pi()*(r_inj)^2; %Injector area, m^2
 
 %Estimated constants for regression rate formula: rdot = a*Go^n
@@ -98,7 +99,7 @@ a = 0.002265;
 n = 1;
 
 %Knockdown factors
-conical_nozzle_correction_factor = 0.983; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
+Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
 Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 
 %Emptying of Run Tank
@@ -128,13 +129,18 @@ for t = 1:((t_burn/deltat)-1)
    u_e(t) = sqrt(((2*k_e*R*T_star_TC*(1-(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e)))/(k_e-1))+u_star_TC^2); %gas velocity of exhaust
    
    
-   T(t) = (mdot_total(t) * u_e(t))*conical_nozzle_correction_factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e_TC(t) - 101300) * A_e; %Calculate thrust
+   T(t) = (mdot_total(t) * u_e(t))*Conical_Nozzle_Correction_Factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e_TC(t) - 101300) * A_e; %Calculate thrust
+   
    r(t+1) = r(t) + rdot(t)*deltat; %Calculate new radius of fuel port
    
    OFR(t) = mdot_ox(t)/mdot_fuel(t); %Oxidizer to fuel ratio
    
    P_RT(t+1) = P_RT(t)-P_drop_per_step;
    P_c(t+1) = mdot_total(t)*C_characteristic/A_star;
+   
+%    if P_c(t+1) >= P_RT(t+1) - 0.25e6 %temporary fix to oscillating P_c at startup to avoid negative deltaP for large oscillations of P_c that reach above P_RT
+%        P_c(t+1) = P_RT(t+1) - 0.25e6;
+%    end
    
    deltaP(t+1) = P_RT(t+1)-P_c(t+1);
 end
@@ -152,21 +158,21 @@ figure(1)
 subplot(3,1,1)
 hold on
 plot((1:t_burn/deltat)*deltat, T, 'r');
-axis([0, 9, 0, max(T)]);
+axis([0, 9, 0, 5000]);
 title('BJ-01 Thrust vs Time');
 xlabel('Time (s)');
 ylabel('Thrust (N)')
 
 subplot(3,1,2)
 plot((1:t_burn/deltat)*deltat, OFR, 'r');
-axis([0, 9, 0, max(OFR)]);
+axis([0, 9, 0, 12]);
 title('OF Ratio');
 xlabel('Time (s)');
 ylabel('Oxidizer to Fuel Ratio')
 
 subplot(3,1,3)
 plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
-axis([0, 9, 0, max(rdot)*1000]);
+axis([0, 9, 0, 1.6]);
 title('Regression Rate')
 xlabel('Time (s)');
 ylabel('Regression rate (mm/s)')
@@ -176,14 +182,24 @@ figure(2)
 plot((1:t_burn/deltat)*deltat, P_c, 'r')
 hold on
 plot((1:t_burn/deltat)*deltat, P_RT, 'c')
-axis([0, 9, 0, max(P_RT)]);
+axis([0, 9, 0, 6e6]);
 title('Run Tank & Combustion Pressure');
 xlabel('Time (s)')
 ylabel('Pressure (Pa)');
 legend('Chamber Pressure', 'Run Tank Pressure');
 hold off
 
-
+figure(3)
+plot((1:t_burn/deltat)*deltat, mdot_ox, 'r')
+hold on
+plot((1:t_burn/deltat)*deltat, mdot_fuel, 'c')
+plot((1:t_burn/deltat)*deltat, mdot_total, 'k')
+axis([0, 9, 0, 2]);
+title('Ox and Prop Mass Flow Rates');
+xlabel('Time (s)')
+ylabel('Mass Flow Rate (kg/s)');
+legend('Oxidizer MFR', 'Propellant MFR');
+hold off
 
 
 
@@ -248,7 +264,7 @@ end
 g_force = acceleration_FS/9.81;
 
 
-figure(3)
+figure(4)
 hold on
 subplot(3,1,1)
 plot(time, altitude_FS, 'r')
