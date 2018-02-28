@@ -160,8 +160,8 @@ Isp = T(2)/(mdot_total(2)*9.81) %ProPep3
 
 %% RECALCULATE ENGINE SIZING PARAMETERS 
 %Based on usage during burn
-rout_fuel = r(((t_burn/deltat)-1)); %set outer radius of propellant to the final burn radius
-m_fuel = rho_fuel*L_fuel*pi*((rout_fuel^2)-(rin_fuel^2));
+rout_fuel = r(length(t)); %set outer radius of propellant to the final burn radius
+m_fuel = rho_fuel*L_fuel*pi*((rout_fuel^2)-(rin_fuel^2))
 
 m_ox = 0;
 for t = 1:((t_burn/deltat)-1)
