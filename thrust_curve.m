@@ -25,6 +25,7 @@ P_c = zeros(1, t_burn/deltat); %CHAMBER PRESSURE
 P_RT = zeros(1, t_burn/deltat); %RUN TANK PRESSURE
 u_e = zeros(1, t_burn/deltat); %EXHAUST EXIT VELOCITY
 P_e_TC = zeros(1, t_burn/deltat); %EXHAUST PRESSURE
+deltaP = zeros(1, t_burn/deltat); %PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
 
 
 
@@ -77,21 +78,20 @@ r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to mete
 U = 0.15; %percent ullage
 rho_n2o_l = 786.6; %FOR T=20ºC, density of n2o liquid, kg/m^3
 rho_n2o_v = 159.4; %FOR T=20ºC, density of n2o vapour, kg/m^3
-P_tank = 5060000; % FOR T=20ºC, run tank pressure, Pa, Assuming P_runtank = P_vap of the N2O
 L_tank = (m_ox/(pi*(r_tank^2)*((rho_n2o_v*U)+(rho_n2o_l*(1-U))))) - ((4/3)*r_tank); % assumes cylindrical tank with 2 hemispherical end caps
 
-
+CR = 4; %Contraction ratio
 
 %% thrust curve estimation, sea level
 %Vector initialization
 r(1) = rin_fuel;
 P_c(1) = 3.7e6; %Combustion chamber pressure equal to atmospheric at start
 P_RT(1) = 5.06e6; %Run tank pressure, 50 bar
-u_e(1) = 0;
+deltaP(1) = P_RT(1) - P_c(1);
 
 %Injector orifice diameter calc
-d_inj = ( (((4*m_ox/t_burn)/pi)^2) / ((rho_n2o_l^2)*(P_tank(1) - P_c(1))))^0.25; % calculates injector orifice diameter, m
-A_inj = pi()*(d_inj/2)^2;
+r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*(deltaP(1)))*pi)); % calculates injector orifice radius, m
+A_inj = pi()*(r_inj)^2; %Injector area, m^2
 
 %Estimated constants for regression rate formula: rdot = a*Go^n
 a = 0.002265;
@@ -104,23 +104,20 @@ Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses i
 %Emptying of Run Tank
 P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of the Run Tank per time step
 
-for t = 2:t_burn/deltat
-   deltaP = P_RT(t-1)-P_c(t-1);
-   mdot_ox(t) = A_inj*sqrt(2*(deltaP)*rho_n2o_l);
-    
-   Go(t) = mdot_ox(t)/(3.1415*r(t-1)^2); %calculate oxizider mass flux
+for t = 1:((t_burn/deltat)-1)
+   mdot_ox(t) = A_inj*sqrt(2*(deltaP(t))*rho_n2o_l);
+   
+   Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
    rdot(t) = (a*Go(t)^n)/1000;
    
-   mdot_fuel(t) = rho_fuel*2*pi*r(t-1)*rdot(t)*L_fuel;
+   mdot_fuel(t) = rho_fuel*2*pi*r(t)*rdot(t)*L_fuel;
    mdot_total(t) = mdot_ox(t) + mdot_fuel(t);
-   
-   P_c(t) = mdot_total(t)*C_characteristic/A_star;
-   
+      
    
    %ISENTROPIC CALCS:
    %THROAT
    T_star_TC = T_c*(1+(k_c-1)/2)^-1;
-   P_star_TC = P_c(1)*(T_star_TC/T_c)^(k_c/(k_c-1));
+   P_star_TC = P_c(t)*(T_star_TC/T_c)^(k_c/(k_c-1));
    c_star_TC = sqrt(k_e*R*T_star_TC); %speed of sound at throat
    u_star_TC = c_star_TC; %M=1 at throat
    rho_star_TC = k_c*P_star_TC/(c_star_TC^2);
@@ -131,12 +128,15 @@ for t = 2:t_burn/deltat
    u_e(t) = sqrt(((2*k_e*R*T_star_TC*(1-(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e)))/(k_e-1))+u_star_TC^2); %gas velocity of exhaust
    
    
-   T(t) = (mdot_total(t) * u_e(t))*conical_nozzle_correction_factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e - 101300) * A_e; %Calculate thrust
-   r(t) = r(t-1) + rdot(t)*deltat; %Calculate new radius of fuel port
+   T(t) = (mdot_total(t) * u_e(t))*conical_nozzle_correction_factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e_TC(t) - 101300) * A_e; %Calculate thrust
+   r(t+1) = r(t) + rdot(t)*deltat; %Calculate new radius of fuel port
    
    OFR(t) = mdot_ox(t)/mdot_fuel(t); %Oxidizer to fuel ratio
    
-   P_RT(t) = P_RT(t-1)-P_drop_per_step;
+   P_RT(t+1) = P_RT(t)-P_drop_per_step;
+   P_c(t+1) = mdot_total(t)*C_characteristic/A_star;
+   
+   deltaP(t+1) = P_RT(t+1)-P_c(t+1);
 end
 
 I_total = 0;
