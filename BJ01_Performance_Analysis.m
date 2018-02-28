@@ -1,4 +1,5 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
+%written by Andrew Colombo
 %COPYRIGHT ASTROJAYS 2018
 %
 %Structure of script:
