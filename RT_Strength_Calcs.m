@@ -24,13 +24,13 @@ t_inches = t ./ 25.4; % converting to inches
 %Rho_area = [3.934 9.942 4.417]; % density per unit area in kg/m^2
 %m = Rho_area.*A;
 
-disp(' ')
-disp(sig_y_names)
-disp(' ')
-disp('Required R.T. wall thickness (in mm)')
-disp(t)
-disp('Required R.T. wall thickness (in inches)')
-disp(t_inches)
+% disp(' ')
+% disp(sig_y_names)
+% disp(' ')
+% disp('Required R.T. wall thickness (in mm)')
+% disp(t)
+% disp('Required R.T. wall thickness (in inches)')
+% disp(t_inches)
 %disp('Run tank mass (excluding weld strengtheners) in kg')
 %disp(m)
 
