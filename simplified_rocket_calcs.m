@@ -23,8 +23,8 @@ m_propellant=input('Mass of Propellant (kg)? '); % Mass of propellant (fuel)
 %----Calculations----%
 %  Rocket Properties
 A=(pi()*(D^2))/4; % x-sectional area of rocket body [axial] (m^2)
-m_avg_boost=(m_struc)+(m_recov)+(m_elec)+(m_prop_dry)-(m_propellant/2); % average mass during boost (kg)
-m_avg_coast=(m_struc)+(m_elec)+(m_prop_dry)-(m_propellant); % average mass during coast (kg)
+m_avg_boost=(m_struc)+(m_recov)+(m_elec)+(m_prop_dry)+(m_propellant/2); % average mass during boost (kg)
+m_avg_coast=(m_struc)+(m_elec)+(m_recov)+(m_prop_dry); % average mass during coast (kg)
 
 % Flight Parameters
 t=I/T; % calculating effective burn time (seconds)
