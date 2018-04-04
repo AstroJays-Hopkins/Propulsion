@@ -28,8 +28,9 @@ fprintf(fid, '**************************************************************\n\n
 fprintf(fid, 'RUN TANK DESIGN PARAMETERS\n');
 fprintf(fid, '**************************************************************\n');
 fprintf(fid, 'Oxizider Mass (kg): %f\nEstimated Ox Mass Flow Rate (kg/s): %f\n', m_ox, mdot_ox(20));
-fprintf(fid, 'Length of Oxidizer Tank [cyl w/ hemispherical ends] (m): %f\nTank Radius (m): %f\n', L_tank_hemiends, r_tank);
-fprintf(fid, 'Length of Oxidizer Tank [cyl w/ flat ends] (m): %f\nTank Radius (m): %f\n', L_tank_flatends, r_tank);
+fprintf(fid, 'Tank Volume (m): %f\nUllage: %f\n', vol_tank, U);
+fprintf(fid, 'Tank Radius (m): %f\nLength of Oxidizer Tank [cyl w/ hemispherical ends] (m): %f\n', r_tank, L_tank_hemiends);
+fprintf(fid, 'Length of Oxidizer Tank [cyl w/ flat ends] (m): %f\n', L_tank_flatends);
 fprintf(fid, '**************************************************************\n\n\n\nEND OUTPUT');
 
 fclose(fid);
