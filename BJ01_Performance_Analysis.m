@@ -8,9 +8,10 @@
 %3. Engine size estimates
 %4. Thrust curve estimate
 %5. Recalculate engine sizing
-%6. Plot engine performance
-%7. Flight sm
-%8. Plot flight simulation results
+%6. Calculate required run tank sizing
+%7. Plot engine performance
+%8. Flight sim
+%9. Plot flight simulation results
 
 %% INITIALIZATION
 %constant initialization
@@ -170,7 +171,7 @@ for i = 1:t_burn/deltat
     I_total = I_total + T(i)*deltat;
 end
 
-Isp = T(2)/(mdot_total(2)*9.81) %ProPep3 
+Isp = T(2)/(mdot_total(2)*9.81); %ProPep3 
 
 %% RECALCULATE ENGINE SIZING PARAMETERS 
 %Based on usage during burn
@@ -182,11 +183,18 @@ for t = 1:((t_burn/deltat)-1)
     m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
 end
 
-%recalculate fuel tank length
-r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
-U = 0.15; %percent ullage
-L_tank = (m_ox/(pi*(r_tank^2)*((rho_n2o_v*U)+(rho_n2o_l*(1-U))))) - ((4/3)*r_tank); % assumes cylindrical tank with 2 hemispherical end caps
+%% Run Tank Sizing & "Ullage"/Head Space Calculations
+T_close = 20; %RT temperature upon final closing of bleed valve [deg C]
+T_maxop = 25; %Max designed for RT temp [deg C]
+[rho_RT_liq_close, rho_RT_vap_close, P_RT_vap_close] = N2Olookup(T_close);
+[rho_RT_liq_maxop, rho_RT_vap_maxop, P_RT_vap_maxop] = N2Olookup(T_maxop);
+U_maxop = 0.01; % setting volumetric percent of vapor in RT at T_maxop
+U = ( ((1-U_maxop)*rho_RT_liq_maxop) + (U_maxop*rho_RT_vap_maxop) - rho_RT_liq_close) / (rho_RT_vap_close - rho_RT_liq_close); % percent ullage
 
+vol_tank = m_ox/((rho_RT_liq_close*(1-U))+(rho_RT_vap_close*U)); % calculates required volume of tank (m^3)
+r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
+L_tank_hemiends = (vol_tank-((4/3)*pi*(r_tank^3)))/(pi*(r_tank^2)); % assumes cylindrical tank with 2 hemispherical end caps
+L_tank_flatends = vol_tank/(pi*(r_tank^2)); % assumes cylindrical tank with 2 flat end caps (w/ no volume contribution)
 
 %% PLOT - ENGINE PERFORMANCE
 figure(1)
@@ -236,9 +244,6 @@ xlabel('Time (s)')
 ylabel('Mass Flow Rate (kg/s)');
 legend('Oxidizer MFR', 'Propellant MFR');
 hold off
-
-
-
 
 
 %% Flight Sim

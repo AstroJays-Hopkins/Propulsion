@@ -73,16 +73,16 @@ y_burnout = y_ft(idx_burnout);
 str_burnout = ['Burnout = ', num2str(y_burnout),'ft'];
 
 idx_apo = find(y_ft == max(y_ft));
-t_apo = time(idx_apo);
-y_apo = y_ft(idx_apo);
-str_apo = ['Apogee = ', num2str(y_apo),'ft'];
+t_apo_ft = time(idx_apo);
+y_apo_ft = y_ft(idx_apo);
+str_apo = ['Apogee = ', num2str(y_apo_ft),'ft'];
 
 
 figure
 hold on
 plot(time, y_ft, '-s', 'MarkerIndices', [idx_burnout idx_apo], 'MarkerFaceColor', 'red', 'MarkerSize', 15)
 text(t_burnout,y_burnout,str_burnout,'HorizontalAlignment','left');
-text(t_apo,y_apo,str_apo,'HorizontalAlignment','left');
+text(t_apo_ft,y_apo_ft,str_apo,'HorizontalAlignment','left');
 xlabel('Time (s)')
 ylabel('Altitude (ft)')
 hold off

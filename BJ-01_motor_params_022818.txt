@@ -53,7 +53,9 @@ END OUTPUTRUN TANK DESIGN PARAMETERS
 **************************************************************
 Oxizider Mass (kg): 12.815664
 Estimated Ox Mass Flow Rate (kg/s): 1.120757
-Length of Oxidizer Tank (m): 0.912893
+Length of Oxidizer Tank [cyl w/ hemispherical ends] (m): 0.849894
+Tank Radius (m): 0.076200
+Length of Oxidizer Tank [cyl w/ flat ends] (m): 0.951494
 Tank Radius (m): 0.076200
 **************************************************************
 
