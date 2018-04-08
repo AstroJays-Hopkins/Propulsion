@@ -1,0 +1,367 @@
+------------------------------------------------------------
+Creo Simulate Structure Version P-30-43:spg
+Log for Design Study "P_VAP_30C"
+Sun Apr  8, 2018   13:47:43
+------------------------------------------------------------
+
+Engine Command with the specified command line options:
+
+ C:\Program Files\PTC\Creo 4.0\M020\Common Files\mech\x86e_win64\bin\msengine.exe  P_VAP_30C  -i  .  -w  .  -solram  512  -sturm  default  -nl_ldc  -num_threads  ALL  -results_io_cache_size  1024 
+
+Begin Creating Database for Design Study
+Sun Apr  8, 2018   13:47:43
+   Elapsed Time       (sec):       6.57
+   CPU Time           (sec):       0.19
+   Memory Usage        (kb):      90296
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.03
+   Step CPU Time      (sec):       0.02
+
+Begin Integrated Mode Error Checking
+Sun Apr  8, 2018   13:47:43
+   Elapsed Time       (sec):       6.60
+   CPU Time           (sec):       0.20
+   Memory Usage        (kb):      90383
+   Work Dir Disk Usage (kb):          0
+
+Checking the model before creating elements...
+These checks take into account the fact that AutoGEM will
+automatically create elements in volumes with material
+properties, on surfaces with shell properties, and on curves
+with beam section properties.
+
+   Step Elapsed Time  (sec):       0.04
+   Step CPU Time      (sec):       0.00
+
+Begin Generating Elements
+Sun Apr  8, 2018   13:47:43
+   Elapsed Time       (sec):       6.64
+   CPU Time           (sec):       0.20
+   Memory Usage        (kb):      90463
+   Work Dir Disk Usage (kb):          0
+
+Copying elements from an existing study model ...
+Only copied 65% of the elements. The model must be remeshed.
+Element copy failed.  Creo Simulate will automatically remesh.
+
+
+____________________________________________________________
+
+          AutoGEM Settings
+
+  Isolate Surface Features: 
+
+  [x] Reentrant Corners
+  [x] Point Loads
+  [x] Point Constraints
+  [x] Point Heat Loads
+  [x] Point Prescribed Temperatures
+  [x] Point Convection Conditions
+
+ ------------------------------------------
+
+  [x] Insert Points
+  [x] Create Links Where Needed
+  [x] Move or Delete Existing Points
+  [x] Modify or Delete Existing Elements
+  [ ] Detailed Fillet Modeling
+  [ ] Display AutoGEM Messages
+  [ ] Automatic Interrupt
+
+ ------------------------------------------
+
+  Shell Element Type:   Quad and Tri
+  Solid Element Type:   Brick, Wedge, Tetra
+
+  Allowable Angles (Degrees):
+    Edge    Min:   5.0  Max:  175.0
+    Face    Min:   5.0  Max:  175.0
+
+  Max Allowable Edge Turn (Degrees):  95.0
+
+  Max Allowable Aspect Ratio:  30.0
+
+____________________________________________________________
+
+Working on 3 volume(s) ...
+Pre-processing features for 26 surfaces ...
+Pre-processing boundary features ...
+Optimizing boundary point locations ...
+Detecting thin features on the volume ...
+Pre-processing volume features ...
+Searching for existing solid elements inside the volume ...
+Found 0 existing solid element(s) inside the volume.
+Creating solid elements ...
+Optimizing elements ...
+Adding 1578 solid elements to model ...
+Displaying Elements ...
+
+____________________________________________________________
+
+          AutoGEM Summary
+
+  Entities Created:
+
+    Beam:         0       Edge:              2326
+    Tri:          0       Face:              3469
+    Quad:         0       Face-Face Link:    0
+    Tetra:     1578       Edge-Face Link:    0
+    Wedge:        0
+    Brick:        0
+
+ ----------------------------------------------------
+
+  Criteria Satisfied:
+
+  Angles (Degrees):
+    Edge  Min:   5.0    Max:  172.8
+    Face  Min:   5.0    Max:  173.7
+
+  Max Aspect Ratio: 11.1
+
+  Elapsed Time:    0.0 min    CPU Time:   0.0 min
+
+____________________________________________________________
+
+
+   Step Elapsed Time  (sec):       1.80
+   Step CPU Time      (sec):       2.06
+
+Begin Integrated Mode Error Checking
+Sun Apr  8, 2018   13:47:45
+   Elapsed Time       (sec):       8.44
+   CPU Time           (sec):       2.27
+   Memory Usage        (kb):     131636
+   Work Dir Disk Usage (kb):          0
+Checking the model after creating elements...
+No errors were found in the model.
+   Step Elapsed Time  (sec):       0.13
+   Step CPU Time      (sec):       0.06
+
+Begin Engine Bookkeeping
+Sun Apr  8, 2018   13:47:45
+   Elapsed Time       (sec):       8.58
+   CPU Time           (sec):       2.33
+   Memory Usage        (kb):     131636
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.09
+   Step CPU Time      (sec):       0.06
+
+Begin Analysis: "P_VAP_30C"
+Sun Apr  8, 2018   13:47:45
+   Elapsed Time       (sec):       8.66
+   CPU Time           (sec):       2.39
+   Memory Usage        (kb):     131636
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.14
+   Step CPU Time      (sec):       0.11
+
+Begin Mass Calculation
+Sun Apr  8, 2018   13:47:46
+   Elapsed Time       (sec):       8.81
+   CPU Time           (sec):       2.50
+   Memory Usage        (kb):     131636
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.16
+   Step CPU Time      (sec):       0.05
+
+Begin P-Loop Pass 1
+Sun Apr  8, 2018   13:47:46
+   Elapsed Time       (sec):       8.97
+   CPU Time           (sec):       2.55
+   Memory Usage        (kb):     131636
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.09
+   Step CPU Time      (sec):       0.03
+
+Begin Element Calculations, Pass 1
+Sun Apr  8, 2018   13:47:46
+   Elapsed Time       (sec):       9.06
+   CPU Time           (sec):       2.58
+   Memory Usage        (kb):     142530
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.16
+   Step CPU Time      (sec):       0.11
+
+Begin Global Matrix Assembly, Pass 1
+Sun Apr  8, 2018   13:47:46
+   Elapsed Time       (sec):       9.22
+   CPU Time           (sec):       2.69
+   Memory Usage        (kb):     144716
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.05
+   Step CPU Time      (sec):       0.02
+
+Begin Equation Solve, Pass 1
+Sun Apr  8, 2018   13:47:46
+   Elapsed Time       (sec):       9.27
+   CPU Time           (sec):       2.70
+   Memory Usage        (kb):     146438
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.52
+   Step CPU Time      (sec):       0.59
+
+Begin Load Calculations
+Sun Apr  8, 2018   13:47:47
+   Elapsed Time       (sec):       9.79
+   CPU Time           (sec):       3.30
+   Memory Usage        (kb):     647811
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.04
+   Step CPU Time      (sec):       0.02
+
+Begin Post-Processing Calculations, Pass 1
+Sun Apr  8, 2018   13:47:47
+   Elapsed Time       (sec):       9.84
+   CPU Time           (sec):       3.31
+   Memory Usage        (kb):     647811
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.35
+   Step CPU Time      (sec):       0.33
+
+Begin Convergence Check Pass 1
+Sun Apr  8, 2018   13:47:47
+   Elapsed Time       (sec):      10.18
+   CPU Time           (sec):       3.64
+   Memory Usage        (kb):     652743
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.66
+   Step CPU Time      (sec):       0.61
+
+Begin Strain Energy Calculations
+Sun Apr  8, 2018   13:47:48
+   Elapsed Time       (sec):      10.84
+   CPU Time           (sec):       4.25
+   Memory Usage        (kb):     652743
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.09
+   Step CPU Time      (sec):       0.05
+
+Begin P-Loop Pass 2
+Sun Apr  8, 2018   13:47:48
+   Elapsed Time       (sec):      10.93
+   CPU Time           (sec):       4.30
+   Memory Usage        (kb):     652743
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.10
+   Step CPU Time      (sec):       0.05
+
+Begin Element Calculations, Pass 2
+Sun Apr  8, 2018   13:47:48
+   Elapsed Time       (sec):      11.03
+   CPU Time           (sec):       4.34
+   Memory Usage        (kb):     664243
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       2.30
+   Step CPU Time      (sec):       2.25
+
+Begin Global Matrix Assembly, Pass 2
+Sun Apr  8, 2018   13:47:50
+   Elapsed Time       (sec):      13.33
+   CPU Time           (sec):       6.59
+   Memory Usage        (kb):     664243
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.06
+   Step CPU Time      (sec):       0.02
+
+Begin Equation Solve, Pass 2
+Sun Apr  8, 2018   13:47:50
+   Elapsed Time       (sec):      13.39
+   CPU Time           (sec):       6.61
+   Memory Usage        (kb):     666918
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       2.30
+   Step CPU Time      (sec):       3.78
+
+Begin Load Calculations
+Sun Apr  8, 2018   13:47:52
+   Elapsed Time       (sec):      15.69
+   CPU Time           (sec):      10.39
+   Memory Usage        (kb):     669177
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.07
+   Step CPU Time      (sec):       0.03
+
+Begin Post-Processing Calculations, Pass 2
+Sun Apr  8, 2018   13:47:53
+   Elapsed Time       (sec):      15.76
+   CPU Time           (sec):      10.42
+   Memory Usage        (kb):     669177
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       1.12
+   Step CPU Time      (sec):       1.17
+
+Begin Convergence Check Pass 2
+Sun Apr  8, 2018   13:47:54
+   Elapsed Time       (sec):      16.88
+   CPU Time           (sec):      11.59
+   Memory Usage        (kb):     674922
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       1.27
+   Step CPU Time      (sec):       1.22
+
+Begin Displacement and Stress Calculation
+Sun Apr  8, 2018   13:47:55
+   Elapsed Time       (sec):      18.16
+   CPU Time           (sec):      12.81
+   Memory Usage        (kb):     686171
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.70
+   Step CPU Time      (sec):       0.30
+
+Begin Reaction Calculation
+Sun Apr  8, 2018   13:47:56
+   Elapsed Time       (sec):      18.86
+   CPU Time           (sec):      13.11
+   Memory Usage        (kb):     707916
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.31
+   Step CPU Time      (sec):       0.27
+
+Begin Strain Energy Calculations
+Sun Apr  8, 2018   13:47:56
+   Elapsed Time       (sec):      19.17
+   CPU Time           (sec):      13.38
+   Memory Usage        (kb):     710991
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.35
+   Step CPU Time      (sec):       0.31
+
+Completed P-Loop
+Sun Apr  8, 2018   13:47:56
+   Elapsed Time       (sec):      19.52
+   CPU Time           (sec):      13.69
+   Memory Usage        (kb):     710991
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.24
+   Step CPU Time      (sec):       0.02
+
+Completed Analysis: P_VAP_30C
+Sun Apr  8, 2018   13:47:57
+   Elapsed Time       (sec):      19.76
+   CPU Time           (sec):      13.70
+   Memory Usage        (kb):     710991
+   Work Dir Disk Usage (kb):     178176

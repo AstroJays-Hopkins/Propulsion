@@ -1,0 +1,5 @@
+analysis type 0
+reactions 1 1 PRESSURES
+resultant  -4.31748e-05  -1.59845e-08   0.000107779
+nodes          0
+edges          0          5 no_cmpc

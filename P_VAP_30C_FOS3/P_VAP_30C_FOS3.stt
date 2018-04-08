@@ -1,0 +1,292 @@
+------------------------------------------------------------
+Creo Simulate Structure Version P-30-43:spg
+Log for Design Study "P_VAP_30C_FOS3"
+Sun Apr  8, 2018   14:17:03
+------------------------------------------------------------
+
+Engine Command with the specified command line options:
+
+ C:\Program Files\PTC\Creo 4.0\M020\Common Files\mech\x86e_win64\bin\msengine.exe  P_VAP_30C_FOS3  -i  .  -w  .  -solram  512  -sturm  default  -nl_ldc  -num_threads  ALL  -results_io_cache_size  1024 
+
+Begin Creating Database for Design Study
+Sun Apr  8, 2018   14:17:03
+   Elapsed Time       (sec):       6.49
+   CPU Time           (sec):       0.11
+   Memory Usage        (kb):      90509
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.03
+   Step CPU Time      (sec):       0.00
+
+Begin Integrated Mode Error Checking
+Sun Apr  8, 2018   14:17:03
+   Elapsed Time       (sec):       6.52
+   CPU Time           (sec):       0.11
+   Memory Usage        (kb):      90509
+   Work Dir Disk Usage (kb):          0
+
+Checking the model before creating elements...
+These checks take into account the fact that AutoGEM will
+automatically create elements in volumes with material
+properties, on surfaces with shell properties, and on curves
+with beam section properties.
+
+   Step Elapsed Time  (sec):       0.04
+   Step CPU Time      (sec):       0.00
+
+Begin Generating Elements
+Sun Apr  8, 2018   14:17:03
+   Elapsed Time       (sec):       6.56
+   CPU Time           (sec):       0.11
+   Memory Usage        (kb):      90703
+   Work Dir Disk Usage (kb):          0
+
+Copying elements from an existing study model ...
+Successfully copied elements from an existing study model.
+
+
+A complete set of elements already exists.
+
+OK
+
+
+   Step Elapsed Time  (sec):       0.41
+   Step CPU Time      (sec):       0.38
+
+Begin Integrated Mode Error Checking
+Sun Apr  8, 2018   14:17:04
+   Elapsed Time       (sec):       6.97
+   CPU Time           (sec):       0.48
+   Memory Usage        (kb):     110076
+   Work Dir Disk Usage (kb):          0
+Checking the model after creating elements...
+No errors were found in the model.
+   Step Elapsed Time  (sec):       0.15
+   Step CPU Time      (sec):       0.05
+
+Begin Engine Bookkeeping
+Sun Apr  8, 2018   14:17:04
+   Elapsed Time       (sec):       7.12
+   CPU Time           (sec):       0.53
+   Memory Usage        (kb):     110076
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.10
+   Step CPU Time      (sec):       0.06
+
+Begin Analysis: "P_VAP_30C_FOS3"
+Sun Apr  8, 2018   14:17:04
+   Elapsed Time       (sec):       7.22
+   CPU Time           (sec):       0.59
+   Memory Usage        (kb):     110577
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.82
+   Step CPU Time      (sec):       0.17
+
+Begin Mass Calculation
+Sun Apr  8, 2018   14:17:05
+   Elapsed Time       (sec):       8.03
+   CPU Time           (sec):       0.77
+   Memory Usage        (kb):     116884
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.23
+   Step CPU Time      (sec):       0.06
+
+Begin P-Loop Pass 1
+Sun Apr  8, 2018   14:17:05
+   Elapsed Time       (sec):       8.26
+   CPU Time           (sec):       0.83
+   Memory Usage        (kb):     117971
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.09
+   Step CPU Time      (sec):       0.03
+
+Begin Element Calculations, Pass 1
+Sun Apr  8, 2018   14:17:05
+   Elapsed Time       (sec):       8.35
+   CPU Time           (sec):       0.86
+   Memory Usage        (kb):     142274
+   Work Dir Disk Usage (kb):          0
+
+   Step Elapsed Time  (sec):       0.15
+   Step CPU Time      (sec):       0.11
+
+Begin Global Matrix Assembly, Pass 1
+Sun Apr  8, 2018   14:17:05
+   Elapsed Time       (sec):       8.50
+   CPU Time           (sec):       0.97
+   Memory Usage        (kb):     144464
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.04
+   Step CPU Time      (sec):       0.02
+
+Begin Equation Solve, Pass 1
+Sun Apr  8, 2018   14:17:05
+   Elapsed Time       (sec):       8.54
+   CPU Time           (sec):       0.98
+   Memory Usage        (kb):     146166
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.53
+   Step CPU Time      (sec):       0.66
+
+Begin Load Calculations
+Sun Apr  8, 2018   14:17:06
+   Elapsed Time       (sec):       9.08
+   CPU Time           (sec):       1.64
+   Memory Usage        (kb):    2071703
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.05
+   Step CPU Time      (sec):       0.02
+
+Begin Post-Processing Calculations, Pass 1
+Sun Apr  8, 2018   14:17:06
+   Elapsed Time       (sec):       9.12
+   CPU Time           (sec):       1.66
+   Memory Usage        (kb):    2071703
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.34
+   Step CPU Time      (sec):       0.31
+
+Begin Convergence Check Pass 1
+Sun Apr  8, 2018   14:17:06
+   Elapsed Time       (sec):       9.47
+   CPU Time           (sec):       1.97
+   Memory Usage        (kb):    2077557
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.65
+   Step CPU Time      (sec):       0.58
+
+Begin Strain Energy Calculations
+Sun Apr  8, 2018   14:17:07
+   Elapsed Time       (sec):      10.12
+   CPU Time           (sec):       2.55
+   Memory Usage        (kb):    2077557
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.08
+   Step CPU Time      (sec):       0.05
+
+Begin P-Loop Pass 2
+Sun Apr  8, 2018   14:17:07
+   Elapsed Time       (sec):      10.20
+   CPU Time           (sec):       2.59
+   Memory Usage        (kb):    2077557
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       0.10
+   Step CPU Time      (sec):       0.03
+
+Begin Element Calculations, Pass 2
+Sun Apr  8, 2018   14:17:07
+   Elapsed Time       (sec):      10.30
+   CPU Time           (sec):       2.63
+   Memory Usage        (kb):    2088147
+   Work Dir Disk Usage (kb):      30720
+
+   Step Elapsed Time  (sec):       2.68
+   Step CPU Time      (sec):       2.64
+
+Begin Global Matrix Assembly, Pass 2
+Sun Apr  8, 2018   14:17:10
+   Elapsed Time       (sec):      12.98
+   CPU Time           (sec):       5.27
+   Memory Usage        (kb):    2088147
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.05
+   Step CPU Time      (sec):       0.02
+
+Begin Equation Solve, Pass 2
+Sun Apr  8, 2018   14:17:10
+   Elapsed Time       (sec):      13.04
+   CPU Time           (sec):       5.28
+   Memory Usage        (kb):    2090846
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       2.94
+   Step CPU Time      (sec):       4.67
+
+Begin Load Calculations
+Sun Apr  8, 2018   14:17:13
+   Elapsed Time       (sec):      15.97
+   CPU Time           (sec):       9.95
+   Memory Usage        (kb):    2093113
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.10
+   Step CPU Time      (sec):       0.05
+
+Begin Post-Processing Calculations, Pass 2
+Sun Apr  8, 2018   14:17:13
+   Elapsed Time       (sec):      16.07
+   CPU Time           (sec):      10.00
+   Memory Usage        (kb):    2093113
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       1.46
+   Step CPU Time      (sec):       1.44
+
+Begin Convergence Check Pass 2
+Sun Apr  8, 2018   14:17:14
+   Elapsed Time       (sec):      17.53
+   CPU Time           (sec):      11.44
+   Memory Usage        (kb):    2093113
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       2.02
+   Step CPU Time      (sec):       1.92
+
+Begin Displacement and Stress Calculation
+Sun Apr  8, 2018   14:17:16
+   Elapsed Time       (sec):      19.55
+   CPU Time           (sec):      13.36
+   Memory Usage        (kb):    2093803
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       1.90
+   Step CPU Time      (sec):       1.14
+
+Begin Reaction Calculation
+Sun Apr  8, 2018   14:17:18
+   Elapsed Time       (sec):      21.45
+   CPU Time           (sec):      14.50
+   Memory Usage        (kb):    2097132
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.38
+   Step CPU Time      (sec):       0.31
+
+Begin Strain Energy Calculations
+Sun Apr  8, 2018   14:17:19
+   Elapsed Time       (sec):      21.83
+   CPU Time           (sec):      14.81
+   Memory Usage        (kb):    2097132
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.41
+   Step CPU Time      (sec):       0.36
+
+Completed P-Loop
+Sun Apr  8, 2018   14:17:19
+   Elapsed Time       (sec):      22.24
+   CPU Time           (sec):      15.17
+   Memory Usage        (kb):    2097132
+   Work Dir Disk Usage (kb):     178176
+
+   Step Elapsed Time  (sec):       0.26
+   Step CPU Time      (sec):       0.03
+
+Completed Analysis: P_VAP_30C_FOS3
+Sun Apr  8, 2018   14:17:19
+   Elapsed Time       (sec):      22.50
+   CPU Time           (sec):      15.20
+   Memory Usage        (kb):    2097132
+   Work Dir Disk Usage (kb):     178176
