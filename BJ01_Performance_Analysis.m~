@@ -316,7 +316,7 @@ figure(4)
 hold on
 subplot(3,1,1)
 plot(time, altitude_FS*(MtoIN/12), 'r')
-axis([0, flight_time, 0, 35000]);
+axis([0, flight_time, 0, max(altitude_FS*(MtoIN/12))]);
 title('BJ-01 Flight Trajectory');
 xlabel('time (s)');
 ylabel('altitude (ft)');

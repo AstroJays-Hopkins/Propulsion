@@ -2,8 +2,6 @@
 %written by Andrew Colombo
 %COPYRIGHT ASTROJAYS 2018
 %
-%IMPERIAL UNITS AS INPUTS & OUTPUTS
-%
 %Structure of script:
 %1. Initialization of constants and vectors
 %2. Initial isentropic calculations to estimate engine size parameters
@@ -16,7 +14,7 @@
 %9. Plot flight simulation results
 
 %% INITIALIZATION
-%constant initialization, SI units due to ProPep3 output
+%constant initialization
 C_characteristic = 1550; %[m/s] characteristic exhaust velocity (set by propep3)
 k_c = 1.246; %[] ratio of specific heats of combustion chamber constituents, from ProPep3
 k_e = 1.257; %[] ratio of specific heats of exhaust constituents, from ProPep3
@@ -44,11 +42,6 @@ u_e = zeros(1, t_burn/deltat); %[m/s] EXHAUST EXIT VELOCITY
 P_e_TC = zeros(1, t_burn/deltat); %[Pa] EXHAUST PRESSURE
 deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
 
-%unit conversions
-PSItoPa = 6894.74; %[psi to Pa]
-LBFtoN = 4.44822; %[lbf to N]
-MtoIN = 39.3701; %[m to in]
-KGtoLBM = 2.20462; %[kg to lbm]
 
 
 %% Combustion flow CONSTANTS & Initial Isentropic Calculations to Size Engine
@@ -56,7 +49,7 @@ KGtoLBM = 2.20462; %[kg to lbm]
 %conditions down nozzle to get estimates to size engine
 
 %CHAMBER, all parameters defined by ProPep3
-P_c(1) = 536.64 * PSItoPa; %[psi -> Pa] Initialize chamber pressure at target value, Pa
+P_c(1) = 3.7e6; %[Pa] Initialize chamber pressure at target value, Pa
 T_c = (3291+3240)/2; %[K] Average Chamber temp (from ProPep3) Note: chamber temp does not vary significantly with changing OF ratio and chamber pressure
 
 %THROAT
@@ -77,7 +70,7 @@ M_e = u_e(1)/c_e; %Mach number of exhaust
 ER = (1/M_e)*sqrt(((1+((k_e-1)/2)*M_e^2)/(1+(k_e-1)/2))^((k_e+1)/(k_e-1))); %Expansion ratio of nozzle, expanding to pressure at estimated altitude for mid-burn
 OF = 7; %7:1, initial oxidizer to fuel ratio
 
-Thrust_max = 674.43 * LBFtoN; %[lbf to N]
+Thrust_max = 3000;
 mdot_estimate = Thrust_max/u_e(1); %total mass flow rate estimate
 m_total = mdot_estimate*t_burn;
 m_fuel = m_total*(1/(OF+1));
@@ -89,7 +82,7 @@ D_star = sqrt(4*A_star/3.1415); %[m]
 D_e = sqrt(4*A_e/3.1415);
 
 rdot_estimate = 0.0012; %[m/s] average regression rate = 1.2 mm/s, from Aspire Space
-G_max = 600; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout, based on AspireSpace literature
+G_max = 600; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout
 rin_fuel = sqrt((1/G_max)/3.1415);
 rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] outer radius of fuel, 3in
 
@@ -105,8 +98,8 @@ CR = 4; %Contraction ratio of nozzle
 %% thrust curve estimation, sea level
 %Vector initialization
 r(1) = rin_fuel;
-P_c(1) = 14.6959 * PSItoPa; %[psi to Pa] Combustion chamber pressure equal to atmospheric at start
-P_RT(1) = 733.891 * PSItoPa; %[psi to Pa] Run tank pressure target
+P_c(1) = 0.1013e6; %Combustion chamber pressure equal to atmospheric at start
+P_RT(1) = 5.06e6; %Run tank pressure, 50.6 bar
 deltaP(1) = P_RT(1) - P_c(1);
 
 %Injector orifice diameter calc
@@ -207,11 +200,11 @@ L_tank_flatends = vol_tank/(pi*(r_tank^2)); % assumes cylindrical tank with 2 fl
 figure(1)
 subplot(3,1,1)
 hold on
-plot((1:t_burn/deltat)*deltat, T/LBFtoN, 'r');
-axis([0, 9, 0, 1000]);
+plot((1:t_burn/deltat)*deltat, T, 'r');
+axis([0, 9, 0, 5000]);
 title('BJ-01 Thrust vs Time');
 xlabel('Time (s)');
-ylabel('Thrust (lbf)')
+ylabel('Thrust (N)')
 
 subplot(3,1,2)
 plot((1:t_burn/deltat)*deltat, OFR, 'r');
@@ -221,35 +214,35 @@ xlabel('Time (s)');
 ylabel('Oxidizer to Fuel Ratio')
 
 subplot(3,1,3)
-plot((1:t_burn/deltat)*deltat, rdot*MtoIN, 'r');
-axis([0, 9, 0, 0.07]);
+plot((1:t_burn/deltat)*deltat, rdot*1000, 'r');
+axis([0, 9, 0, 1.6]);
 title('Regression Rate')
 xlabel('Time (s)');
-ylabel('Regression rate (in/s)')
+ylabel('Regression rate (mm/s)')
 hold off
 
 figure(2)
-plot((1:t_burn/deltat)*deltat, P_c/PSItoPa, 'r')
+plot((1:t_burn/deltat)*deltat, P_c, 'r')
 hold on
-plot((1:t_burn/deltat)*deltat, P_RT/PSItoPa, 'c')
-plot((1:t_burn/deltat)*deltat, deltaP/PSItoPa, 'k')
-axis([0, 9, 0, 1000]);
+plot((1:t_burn/deltat)*deltat, P_RT, 'c')
+plot((1:t_burn/deltat)*deltat, deltaP, 'k')
+axis([0, 9, 0, 6e6]);
 title('Run Tank & Combustion Pressure');
 xlabel('Time (s)')
-ylabel('Pressure (psi)');
+ylabel('Pressure (Pa)');
 legend('Chamber Pressure', 'Run Tank Pressure', 'Pressure Difference b/w RT and Chamber');
 hold off
 
 figure(3)
-plot((1:t_burn/deltat)*deltat, mdot_ox/KGtoLBM, 'r')
+plot((1:t_burn/deltat)*deltat, mdot_ox, 'r')
 hold on
-plot((1:t_burn/deltat)*deltat, mdot_fuel/KGtoLBM, 'c')
-plot((1:t_burn/deltat)*deltat, mdot_total/KGtoLBM, 'k')
-axis([0, 9, 0, 1]);
+plot((1:t_burn/deltat)*deltat, mdot_fuel, 'c')
+plot((1:t_burn/deltat)*deltat, mdot_total, 'k')
+axis([0, 9, 0, 2]);
 title('Ox and Prop Mass Flow Rates');
 xlabel('Time (s)')
-ylabel('Mass Flow Rate (lbm/s)');
-legend('Oxidizer MFR', 'Propellant MFR', 'Total MFR');
+ylabel('Mass Flow Rate (kg/s)');
+legend('Oxidizer MFR', 'Propellant MFR');
 hold off
 
 
@@ -315,11 +308,11 @@ g_force = acceleration_FS/9.81;
 figure(4)
 hold on
 subplot(3,1,1)
-plot(time, altitude_FS*(MtoIN/12), 'r')
-axis([0, flight_time, 0, 35000]);
+plot(time, altitude_FS, 'r')
+axis([0, flight_time, 0, max(altitude_FS)]);
 title('BJ-01 Flight Trajectory');
 xlabel('time (s)');
-ylabel('altitude (ft)');
+ylabel('altitude (m)');
 
 subplot(3,1,2)   
 plot(time, Ma, 'r');
