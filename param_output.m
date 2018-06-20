@@ -4,9 +4,9 @@ LBFtoN = 4.44822; %[lbf to N]
 MtoIN = 39.3701; %[m to in]
 KGtoLBM = 2.20462; %[kg to lbm]
 
-load('BJ01_motor_params_061818.mat');
+load('BJ01_motor_params_061918.mat');
 
-fid = fopen('BJ-01_motor_params_061818.txt', 'w');
+fid = fopen('BJ-01_motor_params_061918.txt', 'w');
 
 fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated June 18, 2018\n\n\n\n');
 

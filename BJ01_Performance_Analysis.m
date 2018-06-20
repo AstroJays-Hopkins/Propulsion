@@ -89,7 +89,7 @@ D_star = sqrt(4*A_star/3.1415); %[m]
 D_e = sqrt(4*A_e/3.1415);
 
 rdot_estimate = 0.0012; %[m/s] average regression rate = 1.2 mm/s, from Aspire Space
-G_max = 600; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout, based on AspireSpace literature
+G_max = 600*0.5; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF of 2, based on AspireSpace literature
 rin_fuel = sqrt((1/G_max)/3.1415);
 rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] outer radius of fuel, 3in
 
