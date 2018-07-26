@@ -1,5 +1,5 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
-%written by Andrew Colombo
+%written by Andrew Colombo & Dan Zanko
 %COPYRIGHT ASTROJAYS 2018
 %
 %IMPERIAL UNITS AS INPUTS & OUTPUTS
@@ -67,7 +67,7 @@ u_star = c_star; %M=1 at throat
 rho_star = k_c*P_star/(c_star^2);
 
 %EXHAUST
-P_e = pressurelookup_SI(1500); %pressure at nozzle exit (P(1500m, mid-burn))
+P_e = pressurelookup_SI(0); %pressure at nozzle exit (P(1500m, mid-burn))
 T_e = T_star*(P_e/P_star)^((k_e-1)/k_e); %NEED TO DEFINE AMBIENT PRESSURE
 c_e = sqrt(k_e*R*T_e); %[m/s] speed of sound at nozzle exit
 u_e(1) = sqrt(((2*k_e*R*T_star*(1-(P_e/P_star)^((k_e-1)/k_e)))/(k_e-1))+u_star^2); %gas velocity of exhaust
@@ -77,24 +77,26 @@ M_e = u_e(1)/c_e; %Mach number of exhaust
 ER = (1/M_e)*sqrt(((1+((k_e-1)/2)*M_e^2)/(1+(k_e-1)/2))^((k_e+1)/(k_e-1))); %Expansion ratio of nozzle, expanding to pressure at estimated altitude for mid-burn
 OF = 7; %7:1, initial oxidizer to fuel ratio
 
-Thrust_max = 674.43 * LBFtoN; %[lbf to N]
-mdot_estimate = Thrust_max/u_e(1); %total mass flow rate estimate
-m_total = mdot_estimate*t_burn;
-m_fuel = m_total*(1/(OF+1));
-m_ox = m_total*(OF/(OF+1));
+Thrust_max = 674.43 * LBFtoN; %[lbf to N] set the max thrust
 
+mdot_estimate = Thrust_max/u_e(1);
 A_star = mdot_estimate/(rho_star*u_star); %[m2]
 A_e = A_star*ER; 
 D_star = sqrt(4*A_star/3.1415); %[m]
 D_e = sqrt(4*A_e/3.1415);
 
-rdot_estimate = 0.0012; %[m/s] average regression rate = 1.2 mm/s, from Aspire Space
-G_max = 600*0.5; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF of 2, based on AspireSpace literature
+flux_SF = 0.75; %safety factor for ox mass flux
+G_max = 600*flux_SF; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF of 2, based on AspireSpace literature
 rin_fuel = sqrt((1/G_max)/3.1415);
-rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] outer radius of fuel, 3in
 
-rho_fuel = 935; %[kg/m^3] Density of HDPE, 
-L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2)));
+rho_fuel = 935; %[kg/m^3] Density of HDPE,
+
+rdot_estimate = 0.0012; %[m/s] ESTIMATE average regression rate = 1.2 mm/s, from Aspire Space
+rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] ESTIMATE outer radius of fuel
+m_total = mdot_estimate*t_burn; %[kg] ESTIMATE total fuel + ox
+m_fuel = m_total*(1/(OF+1)); %[kg] ESTIMATE mass of fuel
+m_ox = m_total*(OF/(OF+1)); %[kg] ESTIMATE mass of oxidizer
+L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2))); %SET fuel length
 
 
 rho_n2o_l = 786.6; %FOR T=20ºC, density of n2o liquid, kg/m^3
@@ -114,7 +116,8 @@ r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*((5.06-3.7+0)*10^6))*pi)); %[m] cal
 A_inj = pi()*(r_inj)^2; %[m^2] Injector area
 
 %Estimated constants for regression rate formula: rdot = a*Go^n
-a = 0.002265;
+% average regression rate = 1.2 mm/s for HDPE, from Aspire Space
+a = 0.002265/flux_SF;
 n = 1;
 
 %Knockdown factors
@@ -126,6 +129,7 @@ P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of th
 
 for t = 1:((t_burn/deltat)-1)
    mdot_ox(t) = A_inj*sqrt(2*(deltaP(t))*rho_n2o_l);
+   m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
    
    Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
    rdot(t) = (a*Go(t)^n)/1000;
@@ -180,15 +184,11 @@ end
 
 Isp = T(2)/(mdot_total(2)*9.81); %ProPep3 
 
-%% RECALCULATE ENGINE SIZING PARAMETERS 
+%% ENGINE SIZING PARAMETERS 
 %Based on usage during burn
 rout_fuel = r(((t_burn/deltat)-1)); %set outer radius of propellant to the final burn radius
 m_fuel = rho_fuel*L_fuel*pi*((rout_fuel^2)-(rin_fuel^2));
 
-m_ox = 0;
-for t = 1:((t_burn/deltat)-1)
-    m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
-end
 
 %% Run Tank Sizing & "Ullage"/Head Space Calculations
 T_close = 20; %RT temperature upon final closing of bleed valve [deg C]
@@ -265,7 +265,7 @@ CA = 3.1415 * 0.0762^2; %6in DIA, cross sectional area of rocket
 CD = 0.75; %from https://spaceflightsystems.grc.nasa.gov/education/rocket/shaped.html
 
 m_pl = 4; %payload mass, kg
-m_structure = 25; %mass of structure and engine
+m_structure = 5.44 + 2.7*2 + 3; %mass of structure and engine
 m_fuelox_FS = m_fuel + m_ox;
 
 m_total_FS = zeros(1, timesteps);
@@ -300,7 +300,6 @@ for t = 2:timesteps
     elseif altitude_FS(t-1) < 0
         break
     end
-        
 end
 
 Ma = zeros(1, timesteps);

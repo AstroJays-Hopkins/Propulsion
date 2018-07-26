@@ -1,4 +1,5 @@
 %NOZZLE SIZER
+%UNITS = INCHES
 %written by Andrew Colombo
 %COPYRIGHT ASTROJAYS 2018
 

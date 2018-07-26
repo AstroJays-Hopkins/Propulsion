@@ -1,16 +1,16 @@
 ASTROJAYS
 BJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m
-Updated June 18, 2018
+Updated June 19, 2018
 
 
 
 GENERAL MOTOR PERFORMANCE
 **************************************************************
-Isp (s): 248.958420	Total Impulse (N.s); 32199.482614
+Isp (s): 250.009596	Total Impulse (N.s); 32835.697888
 Burn Time (s): 13.000000	Max Thrust (lbf): 674.430000
 OF Ratio: 7.000000
-Flight Ceiling, VERY rough esimate (ft): 29418.099934
-Maximum G Force (g): 6.796525
+Flight Ceiling, VERY rough esimate (ft): 28922.228873
+Maximum G Force (g): 6.214352
 **************************************************************
 
 
@@ -18,7 +18,7 @@ INITIAL ISENTROPIC FLOW CALCULATIONS
 **************************************************************
 CHAMBER CONDITIONS:
 
-Pressure (psi): 517.223743	Temperature (K): 3265.500000
+Pressure (psi): 530.870005	Temperature (K): 3265.500000
 Velocity (m/s): 0
 **************************************************************
 THROAT CONDITIONS:
@@ -29,20 +29,20 @@ Velocity (m/s): 1085.694744	Density (kg/m^3): 2.173342
 NOZZLE EXIT CONDITIONS:
 
 Pressure (psi): 12.283277	Temperature (K): 1514.816986
-Velocity (m/s): 2353.081265
+Velocity (m/s): 2358.507739
 **************************************************************
 
 
 
 ENGINE DESIGN PARAMETERS
 **************************************************************
-Propellant Mass (lbm): 1.881118
-Initial Inner Port Radius (in): 1.282441
-Outer Propellant Radius (in): 1.565692
-Length of Propellant Grain (in): 21.972957
+Propellant Mass (lbm): 3.181820
+Initial Inner Port Radius (in): 1.047109
+Outer Propellant Radius (in): 1.502986
+Length of Propellant Grain (in): 25.791421
 
 Expansion Ratio: 5.816230
-Inlet Diameter (in): 2.061944
+Inlet Diameter (in): 3.005973
 Throat Diameter (in): 1.030972
 Exit Diameter (in): 2.486381
 **************************************************************
@@ -51,13 +51,13 @@ Exit Diameter (in): 2.486381
 
 END OUTPUTRUN TANK DESIGN PARAMETERS
 **************************************************************
-Oxizider Mass (lbm): 28.892823
-Estimated Ox Mass Flow Rate (lbm/s): 2.547802
-Tank Volume (in^3): 1083.129955
+Oxizider Mass (lbm): 60.028554
+Estimated Ox Mass Flow Rate (lbm/s): 2.464801
+Tank Volume (in^3): 2250.341713
 Ullage: 0.076894
 Tank Radius (in): 3.000002
-Length of Oxidizer Tank [cyl w/ hemispherical ends] (in): 34.307842
-Length of Oxidizer Tank [cyl w/ flat ends] (in): 38.307844
+Length of Oxidizer Tank [cyl w/ hemispherical ends] (in): 75.589469
+Length of Oxidizer Tank [cyl w/ flat ends] (in): 79.589471
 **************************************************************
 
 

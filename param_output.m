@@ -8,7 +8,7 @@ load('BJ01_motor_params_061918.mat');
 
 fid = fopen('BJ-01_motor_params_061918.txt', 'w');
 
-fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated June 18, 2018\n\n\n\n');
+fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated June 19, 2018\n\n\n\n');
 
 fprintf(fid, 'GENERAL MOTOR PERFORMANCE\n');
 fprintf(fid,'**************************************************************\n');
@@ -28,7 +28,7 @@ fprintf(fid, 'ENGINE DESIGN PARAMETERS\n');
 fprintf(fid, '**************************************************************\n');
 fprintf(fid, 'Propellant Mass (lbm): %f\n', m_fuel*KGtoLBM);
 fprintf(fid, 'Initial Inner Port Radius (in): %f\nOuter Propellant Radius (in): %f\nLength of Propellant Grain (in): %f\n\n', rin_fuel*MtoIN, rout_fuel*MtoIN, L_fuel*MtoIN);
-fprintf(fid, 'Expansion Ratio: %f\nInlet Diameter (in): %f\nThroat Diameter (in): %f\nExit Diameter (in): %f\n', ER, sqrt(4*D_star^2)*MtoIN, D_star*MtoIN, D_e*MtoIN);
+fprintf(fid, 'Expansion Ratio: %f\nInlet Diameter (in): %f\nThroat Diameter (in): %f\nExit Diameter (in): %f\n', ER, rout_fuel*2*MtoIN, D_star*MtoIN, D_e*MtoIN);
 fprintf(fid, '**************************************************************\n\n\n\nEND OUTPUT');
 
 fprintf(fid, 'RUN TANK DESIGN PARAMETERS\n');
