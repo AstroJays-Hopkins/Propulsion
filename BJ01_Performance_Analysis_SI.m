@@ -184,6 +184,7 @@ for t = 1:((t_burn/deltat)-1)
 end
 
 %% Run Tank Sizing & "Ullage"/Head Space Calculations
+ox_mass_compensation_factor = 1.25;
 T_close = 20; %RT temperature upon final closing of bleed valve [deg C]
 T_maxop = 25; %Max designed for RT temp [deg C]
 [rho_RT_liq_close, rho_RT_vap_close, P_RT_vap_close] = N2Olookup(T_close);
@@ -191,7 +192,7 @@ T_maxop = 25; %Max designed for RT temp [deg C]
 U_maxop = 0.01; % setting volumetric percent of vapor in RT at T_maxop
 U = ( ((1-U_maxop)*rho_RT_liq_maxop) + (U_maxop*rho_RT_vap_maxop) - rho_RT_liq_close) / (rho_RT_vap_close - rho_RT_liq_close); % percent ullage
 
-vol_tank = m_ox/((rho_RT_liq_close*(1-U))+(rho_RT_vap_close*U)); % calculates required volume of tank (m^3)
+vol_tank = m_ox*ox_mass_compensation_factor/((rho_RT_liq_close*(1-U))+(rho_RT_vap_close*U)); % calculates required volume of tank (m^3)
 r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
 L_tank_hemiends = (vol_tank-((4/3)*pi*(r_tank^3)))/(pi*(r_tank^2)); % assumes cylindrical tank with 2 hemispherical end caps
 L_tank_flatends = vol_tank/(pi*(r_tank^2)); % assumes cylindrical tank with 2 flat end caps (w/ no volume contribution)
