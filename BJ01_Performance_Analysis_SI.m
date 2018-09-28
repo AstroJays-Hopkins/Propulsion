@@ -192,7 +192,7 @@ T_maxop = 25; %Max designed for RT temp [deg C]
 U_maxop = 0.01; % setting volumetric percent of vapor in RT at T_maxop
 U = ( ((1-U_maxop)*rho_RT_liq_maxop) + (U_maxop*rho_RT_vap_maxop) - rho_RT_liq_close) / (rho_RT_vap_close - rho_RT_liq_close); % percent ullage
 
-r_tank = 3*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
+r_tank = 3.125*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
 vol_tank = m_ox*ox_mass_compensation_factor/((rho_RT_liq_close*(1-U))+(rho_RT_vap_close*U)); % calculates required volume of tank (m^3)
 vol_hemicap = (2/3)*pi*(r_tank^3);
 L_tank_hemiends = (vol_tank-(2*vol_hemicap))/(pi*(r_tank^2)); % assumes cylindrical tank with 2 hemispherical end caps
