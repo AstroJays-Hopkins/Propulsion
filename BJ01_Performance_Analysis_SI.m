@@ -196,8 +196,6 @@ r_tank = 3.125*(2.54/100); % setting inner run tank radius to 3" (converting to 
 vol_tank = m_ox*ox_mass_compensation_factor/((rho_RT_liq_close*(1-U))+(rho_RT_vap_close*U)); % calculates required volume of tank (m^3)
 vol_hemicap = (2/3)*pi*(r_tank^3);
 L_tank_hemiends = (vol_tank-(2*vol_hemicap))/(pi*(r_tank^2)); % assumes cylindrical tank with 2 hemispherical end caps
-L_tank_flatends = vol_tank/(pi*(r_tank^2)); % assumes cylindrical tank with 2 flat end caps (w/ no volume contribution)
-
 h_ullage = (vol_tank*(1-U) - vol_hemicap)/(pi*r_tank^2); % calculating long. distance from BOTTOM of CYLINDER SECTION of RT the ullage valve is to be located
 
 
