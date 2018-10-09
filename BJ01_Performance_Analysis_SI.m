@@ -189,7 +189,7 @@ T_close = 20; %RT temperature upon final closing of bleed valve [deg C]
 T_maxop = 25; %Max designed for RT temp [deg C]
 [rho_RT_liq_close, rho_RT_vap_close, P_RT_vap_close] = N2Olookup(T_close);
 [rho_RT_liq_maxop, rho_RT_vap_maxop, P_RT_vap_maxop] = N2Olookup(T_maxop);
-U_maxop = 0.01; % setting volumetric percent of vapor in RT at T_maxop
+U_maxop = 0.0; % setting volumetric percent of vapor in RT at T_maxop
 U = ( ((1-U_maxop)*rho_RT_liq_maxop) + (U_maxop*rho_RT_vap_maxop) - rho_RT_liq_close) / (rho_RT_vap_close - rho_RT_liq_close); % percent ullage
 
 r_tank = 3.125*(2.54/100); % setting inner run tank radius to 3" (converting to meters)
