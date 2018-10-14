@@ -17,7 +17,6 @@
 
 %% INITIALIZATION
 %constant initialization, SI units due to ProPep3 output
-C_characteristic = 1550; %[m/s] characteristic exhaust velocity (set by propep3)
 k_c = 1.246; %[] ratio of specific heats of combustion chamber constituents, from ProPep3
 k_e = 1.257; %[] ratio of specific heats of exhaust constituents, from ProPep3
 P_drop = 0.6666666; %[] fraction of Run Tank pressure after emptying
@@ -32,6 +31,7 @@ R = R_prime*1000/MM; %[J/kg*K] combustion gas constant
 %vector creation
 T = zeros(1, t_burn/deltat); %[N] THRUST
 mdot_total = zeros(1, t_burn/deltat); %[kg/s] MASS FLOW, TOTAL
+mdot_nozzle = zeros(1, t_burn/deltat); %[kg/s] MASS FLOW THROUGH NOZZLE, TOTAL
 mdot_fuel = zeros(1, t_burn/deltat); %[kg/s] MASS FLOW, FUEL
 mdot_ox = zeros(1, t_burn/deltat); %[kg/s] MASS FLOW, OX
 OFR = zeros(1, t_burn/deltat); %[] OXIDIZER TO FUEL RATIO
@@ -43,6 +43,7 @@ P_RT = zeros(1, t_burn/deltat); %[Pa] RUN TANK PRESSURE
 u_e = zeros(1, t_burn/deltat); %[m/s] EXHAUST EXIT VELOCITY
 P_e_TC = zeros(1, t_burn/deltat); %[Pa] EXHAUST PRESSURE
 deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
+C_characteristic = zeros(1, t_burn/deltat); %[m/s]
 
 %unit conversions
 PSItoPa = 6894.74; %[psi to Pa]
@@ -77,22 +78,23 @@ M_e = u_e(1)/c_e; %Mach number of exhaust
 ER = (1/M_e)*sqrt(((1+((k_e-1)/2)*M_e^2)/(1+(k_e-1)/2))^((k_e+1)/(k_e-1))); %Expansion ratio of nozzle, expanding to pressure at estimated altitude for mid-burn
 OF = 7; %7:1, initial oxidizer to fuel ratio
 
-Thrust_max = 674.43 * LBFtoN; %[lbf to N] set the max thrust
+Thrust_max = 750 * LBFtoN; %[lbf to N] set the max thrust
 
 mdot_estimate = Thrust_max/u_e(1);
-A_star = mdot_estimate/(rho_star*u_star); %[m2]
-A_e = A_star*ER; 
-D_star = sqrt(4*A_star/3.1415); %[m]
+A_star_guess = mdot_estimate/(rho_star*u_star); %[m2]
+A_e = A_star_guess*ER; 
+D_star = sqrt(4*A_star_guess/3.1415); %[m]
 D_e = sqrt(4*A_e/3.1415);
 
-flux_SF = 0.75; %safety factor for ox mass flux
-G_max = 600*flux_SF; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF of 2, based on AspireSpace literature which says 870 kg/m2.s
+flux_SF = 1.75; %safety factor for ox mass flux
+G_max = 870/flux_SF; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF, based on AspireSpace literature which says 870 kg/m2.s
 rin_fuel = sqrt((1/G_max)/3.1415);
 
-rho_fuel = 935; %[kg/m^3] Density of HDPE,
+rho_fuel = 935; %[kg/m^3] Density of HDPE
 
 rdot_estimate = 0.0012; %[m/s] ESTIMATE average regression rate = 1.2 mm/s, from Aspire Space
-rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] ESTIMATE outer radius of fuel
+% rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] ESTIMATE outer radius of fuel
+rout_fuel = 0.0381; %setting max fuel diameter to 3in
 m_total = mdot_estimate*t_burn; %[kg] ESTIMATE total fuel + ox
 m_fuel = m_total*(1/(OF+1)); %[kg] ESTIMATE mass of fuel
 m_ox = m_total*(OF/(OF+1)); %[kg] ESTIMATE mass of oxidizer
@@ -104,77 +106,125 @@ rho_n2o_v = 181.1176; %FOR T=75ºF, density of n2o vapour, kg/m^3
 
 %% thrust curve estimation, sea level
 %Vector initialization
-r(1) = rin_fuel;
-P_c(1) = 14.6959 * PSItoPa; %[psi to Pa] Combustion chamber pressure equal to atmospheric at start
-%P_RT(1) = 733.891 * PSItoPa; %[psi to Pa] Run tank pressure target
-P_RT(1) = 825 * PSItoPa; %[psi to Pa] Run tank pressure target
-deltaP(1) = P_RT(1) - P_c(1);
+A_star_prev = 0; %initialize tracker for throat area
+iter = 1; %initialize throat area iterative tracker
+A_star(1) = A_star_guess;
 
 %Injector orifice diameter calc
 r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*((5.06-3.7+0)*10^6))*pi)); %[m] calculates injector orifice radius
 A_inj = pi()*(r_inj)^2; %[m^2] Injector area
 
-%Estimated constants for regression rate formula: rdot = a*Go^n
-% average regression rate = 1.2 mm/s for HDPE, from Aspire Space
-a = 0.002265/flux_SF;
-n = 1;
+% Ballistic constants taken from Waxman dissertation
+a = 5e-2;
+n = 0.5;
 
 %Knockdown factors
 Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
 Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
+Combustion_Efficiency = 1;
 
 %Emptying of Run Tank
-P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of the Run Tank per time step
 
-for t = 1:((t_burn/deltat)-1)
-   mdot_ox(t) = A_inj*sqrt(2*(deltaP(t))*rho_n2o_l);
-   m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
-   
-   Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
-   rdot(t) = (a*Go(t)^n)/1000;
-   
-   mdot_fuel(t) = rho_fuel*2*pi*r(t)*rdot(t)*L_fuel;
-   mdot_total(t) = mdot_ox(t) + mdot_fuel(t);
-   
-   
-   %ISENTROPIC CALCS:
-   %THROAT
-   T_star_TC = T_c*(1+(k_c-1)/2)^-1;
-   P_star_TC = P_c(t)*(T_star_TC/T_c)^(k_c/(k_c-1));
-   c_star_TC = sqrt(k_e*R*T_star_TC); %speed of sound at throat
-   u_star_TC = c_star_TC; %M=1 at throat
-   rho_star_TC = k_c*P_star_TC/(c_star_TC^2);
-   %EXHAUST
-   P_e_TC(t) = pressurelookup_SI(1500); %pressure at nozzle exit (P(1500m, mid-burn))
-   T_e_TC = T_star*(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e); %NEED TO DEFINE AMBIENT PRESSURE
-   c_e_TC = sqrt(k_e*R*T_e_TC); %speed of sound at nozzle exit
-   u_e(t) = sqrt(((2*k_e*R*T_star_TC*(1-(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e)))/(k_e-1))+u_star_TC^2); %gas velocity of exhaust
-   
-   
-   T(t) = (mdot_total(t) * u_e(t))*Conical_Nozzle_Correction_Factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e_TC(t) - 101300) * A_e; %Calculate thrust
-   
-   r(t+1) = r(t) + rdot(t)*deltat; %Calculate new radius of fuel port
-   
-   OFR(t) = mdot_ox(t)/mdot_fuel(t); %Oxidizer to fuel ratio
-   
-   P_RT(t+1) = P_RT(t)-P_drop_per_step;
-   P_c(t+1) = mdot_total(t)*C_characteristic/A_star;
-   deltaP(t+1) = P_RT(t+1)-P_c(t+1);
+while true
+    r = zeros(1, t_burn/deltat); %[m] PORT RADIUS 
+    r(1) = rin_fuel;
+    
+    P_c = zeros(1, t_burn/deltat); %[Pa] CHAMBER PRESSURE
+    P_c(1) = 14.6959 * PSItoPa; %[psi to Pa] Combustion chamber pressure equal to atmospheric at start
+    
+    P_RT = zeros(1, t_burn/deltat); %[Pa] RUN TANK PRESSURE
+    P_RT(1) = 825 * PSItoPa; %[psi to Pa] Max expected run tank pressure
+    P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of the Run Tank per time step
+    
+    deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
+    deltaP(1) = P_RT(1) - P_c(1);
+    
+    rho_star_TC = 2.1; %initialize for the first iteration...changes on t=2
+    C_characteristic(1) = 1550; %[m/s] characteristic exhaust velocity (set by propep3)
+    m_ox = 0;
+    
+    for t = 1:((t_burn/deltat)-1)
+       mdot_ox(t) = A_inj*sqrt(2*(deltaP(t))*rho_n2o_l); %Need to implement Babitskiy model to account for 2-phase flow.
+       m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
 
-   %Without the conditional below, the chamber pressure oscillates too
-   %wildly - resulting in the chamber pressure momentarily reaching above
-   %the Run Tank pressure. This causes deltaP to be negative, which in turn
-   %causes mdot_ox to have an imaginary component.
-   
-   %Averages out the oscillations of the chamber pressure during startup to avoid code breaking
-   
-   epsilon = 0.001e6; %adjust to achieve smaller oscillations
-   
-   if abs(P_c(t+1) - P_c(t)) > epsilon
-       deltaP(t+1) = (deltaP(t)+deltaP(t+1))/2;
-   end
-   
+       Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
+       rdot(t) = (a*Go(t)^n)/1000;
+
+       mdot_fuel(t) = rho_fuel*2*pi*r(t)*rdot(t)*L_fuel;
+       mdot_total(t) = mdot_ox(t) + mdot_fuel(t);
+
+
+       %ISENTROPIC CALCS:
+       %THROAT
+       T_star_TC = T_c*(1+(k_c-1)/2)^-1;
+       P_star_TC = P_c(t)*(T_star_TC/T_c)^(k_c/(k_c-1));
+       c_star_TC = sqrt(k_e*R*T_star_TC); %speed of sound at throat
+       u_star_TC = c_star_TC; %M=1 at throat
+       if P_c < 1.0132e5
+           rho_star_TC = k_c*P_star_TC/(c_star_TC^2);
+       else
+           rho_star_TC = 2.1;
+       end
+
+       %EXHAUST
+       P_e_TC(t) = pressurelookup_SI(0); %pressure at nozzle exit (P(1500m, mid-burn))
+       T_e_TC = T_star*(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e); %NEED TO DEFINE AMBIENT PRESSURE
+       c_e_TC = sqrt(k_e*R*T_e_TC); %speed of sound at nozzle exit
+       u_e(t) = sqrt(((2*k_e*R*T_star_TC*(1-(P_e_TC(t)/P_star_TC)^((k_e-1)/k_e)))/(k_e-1))+u_star_TC^2); %gas velocity of exhaust
+
+       T(t) = (mdot_total(t) * u_e(t))*Conical_Nozzle_Correction_Factor*Chamber_Throat_Area_Ratio_Knockdown - (P_e_TC(t) - 101300) * A_e; %Calculate thrust
+
+       r(t+1) = r(t) + rdot(t)*deltat; %Calculate new radius of fuel port
+
+       OFR(t) = mdot_ox(t)/mdot_fuel(t); %Oxidizer to fuel ratio
+
+       P_RT(t+1) = P_RT(t)-P_drop_per_step;
+
+
+       [T_c, k_c, R] = combustionParameters(OFR(t), P_c(t));
+       if t~=1
+            C_characteristic(t) = Combustion_Efficiency*sqrt(k_c*R*T_c)/(k_c*(2/(k_c+1))^((k_c+1)/(2*k_c-2)));
+       end
+
+       P_c(t+1) = mdot_total(t)*C_characteristic(t)/A_star(iter);
+
+       deltaP(t+1) = P_RT(t+1)-P_c(t+1);
+
+       %Without the conditional below, the chamber pressure oscillates too
+       %wildly - resulting in the chamber pressure momentarily reaching above
+       %the Run Tank pressure. This causes deltaP to be negative, which in turn
+       %causes mdot_ox to have an imaginary component.
+
+       %Averages out the oscillations of the chamber pressure during startup to avoid code breaking
+
+       epsilon = 0.001e6; %adjust to achieve smaller oscillations
+
+       if abs(P_c(t+1) - P_c(t)) > epsilon
+           deltaP(t+1) = (deltaP(t)+deltaP(t+1))/2;
+       end
+
+    end
+    
+    if abs(A_star_prev - A_star(iter)) < 0.0001
+        break
+    end
+        
+    A_star_prev = A_star(iter);
+    P_c_min = min(P_c(P_c>1e6));
+    OFR_min = min(OFR(OFR>0));
+    [T_c_min, k_c_min, R_min] = combustionParameters(OFR_min, P_c_min);
+    rho_c_min =  P_c_min/(R_min*T_c_min);
+    mdot_total_min = min(mdot_total(mdot_total>0));
+    u_entrance_min = mdot_total_min/(rho_c_min*pi()*rout_fuel^2);
+    Ma_entrance_min = u_entrance_min/sqrt(k_c_min*R_min*T_c_min);
+    
+    iter = iter + 1;
+    A_star(iter) = (3.1415*(rout_fuel^2)*Ma_entrance_min)*sqrt(((1+(k_c_min-1)/2)/(1+(k_c_min-1)*(Ma_entrance_min^2)/2))^((k_c_min+1)/(k_c_min-1)));
+    A_err(iter) = abs(A_star_prev-A_star(iter));
 end
+% grab min pressure & OFR in the chamber -> use to calculate the min k,
+% T_c, R -> calculate the min Ma at the entrance to the nozzle -> use
+% parameters to find the minimum throat area -> run this loop again, tracking throat area every iteration, and accept at certain convergence 
 
 I_total = 0;
 for i = 1:t_burn/deltat
@@ -244,15 +294,14 @@ hold off
 
 
 %% Flight Sim
-flight_time = 45; %seconds
+flight_time = 60; %seconds
 timesteps = flight_time/deltat;
-time = linspace(0, timesteps*deltat, timesteps);
+time = linspace(0, flight_time, timesteps);
 
 acceleration_FS = zeros(1, timesteps);
 altitude_FS = zeros(1, timesteps); %initial altitude
 velocity_FS = zeros(1, timesteps); %initial velocity
-CA = 3.1415 * 0.0762^2; %6in DIA, cross sectional area of rocket
-CD = 0.75; %from https://spaceflightsystems.grc.nasa.gov/education/rocket/shaped.html
+CA = 3.1415 * 0.0889^2; %6in DIA, cross sectional area of rocket
 
 m_pl = 0; %payload mass, kg
 m_structure = 5.44 + 2.7*2 + 3; %mass of structure and engine
@@ -273,9 +322,17 @@ for t = 2:timesteps
         if t <= length(T)
             F_T(t) = T(t) - (P_e_TC(t) - 101000) * A_e + (P_e_TC(t) - pressurelookup_SI(altitude_FS(t-1))) * A_e;
         end
-
+        
+        
         if velocity_FS(t-1) ~= 0
-            F_d(t) = 0.5 * CD * densitylookup_SI(altitude_FS(t-1)) * CA * (velocity_FS(t-1)^2)*(-velocity_FS(t-1)/abs(velocity_FS(t-1)));
+            c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t-1))/densitylookup_SI(altitude_FS(t-1)));
+            Ma = abs(velocity_FS(t-1))/c;
+            
+            if velocity_FS(t-1) > 0
+                F_d(t) = -0.5 * CDcurve(Ma) * 1 * densitylookup_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
+            else
+                F_d(t) = 0.5 * CDcurve(Ma) * densitylookup_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
+            end
         end
 
         F_g = -m_total_FS(t) * 9.81;
@@ -296,10 +353,12 @@ end
 Ma = zeros(1, timesteps);
 for t = 1:timesteps
     c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t))/densitylookup_SI(altitude_FS(t)));
-    Ma(t) = velocity_FS(t)/c;
+    Ma(t) = abs(velocity_FS(t))/c;
 end
 
 g_force = acceleration_FS/9.81;
+
+max(altitude_FS * 3.28084)
 
 %% PLOT - FLIGHT
 figure(4)
