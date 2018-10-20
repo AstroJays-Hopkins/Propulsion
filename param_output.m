@@ -4,11 +4,11 @@ LBFtoN = 4.44822; %[lbf to N]
 MtoIN = 39.3701; %[m to in]
 KGtoLBM = 2.20462; %[kg to lbm]
 
-load('BJ01_motor_params_061918.mat');
+load('BJ01_motor_params_100418.mat');
 
-fid = fopen('BJ-01_motor_params_061918.txt', 'w');
+fid = fopen('BJ-01_motor_params_100418.txt', 'w');
 
-fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated June 19, 2018\n\n\n\n');
+fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated Oct 04, 2018\n\n\n\n');
 
 fprintf(fid, 'GENERAL MOTOR PERFORMANCE\n');
 fprintf(fid,'**************************************************************\n');
@@ -29,14 +29,11 @@ fprintf(fid, '**************************************************************\n')
 fprintf(fid, 'Propellant Mass (lbm): %f\n', m_fuel*KGtoLBM);
 fprintf(fid, 'Initial Inner Port Radius (in): %f\nOuter Propellant Radius (in): %f\nLength of Propellant Grain (in): %f\n\n', rin_fuel*MtoIN, rout_fuel*MtoIN, L_fuel*MtoIN);
 fprintf(fid, 'Expansion Ratio: %f\nInlet Diameter (in): %f\nThroat Diameter (in): %f\nExit Diameter (in): %f\n', ER, rout_fuel*2*MtoIN, D_star*MtoIN, D_e*MtoIN);
-fprintf(fid, '**************************************************************\n\n\n\nEND OUTPUT');
+fprintf(fid, '**************************************************************\n\n\n\n');
 
 fprintf(fid, 'RUN TANK DESIGN PARAMETERS\n');
 fprintf(fid, '**************************************************************\n');
-fprintf(fid, 'Oxizider Mass (lbm): %f\nEstimated Ox Mass Flow Rate (lbm/s): %f\n', m_ox*KGtoLBM, mdot_ox(20)*KGtoLBM);
-fprintf(fid, 'Tank Volume (in^3): %f\nUllage: %f\n', vol_tank*MtoIN^3, U);
-fprintf(fid, 'Tank Radius (in): %f\nLength of Oxidizer Tank [cyl w/ hemispherical ends] (in): %f\n', r_tank*MtoIN, L_tank_hemiends*MtoIN);
-fprintf(fid, 'Length of Oxidizer Tank [cyl w/ flat ends] (in): %f\n', L_tank_flatends*MtoIN);
+fprintf(fid, 'Oxizider Mass (lbm): %f\nEstimated Ox Mass Flow Rate (lbm/s): %f\n', m_ox, mdot_ox(20)*KGtoLBM);
 fprintf(fid, '**************************************************************\n\n\n\nEND OUTPUT');
 
 fclose(fid);
