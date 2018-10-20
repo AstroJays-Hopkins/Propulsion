@@ -1,6 +1,6 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
 %Written by Andrew Colombo & Dan Zanko
-%Updated Oct 11, 2018
+%Updated Oct 17, 2018
 %
 %BOTH SI & IMPERIAL UNITS
 %
@@ -281,10 +281,10 @@ legend('Chamber Pressure', 'Run Tank Pressure', 'Pressure Difference b/w RT and 
 hold off
 
 figure(3)
-plot((1:t_burn/deltat)*deltat, mdot_ox/KGtoLBM, 'r')
+plot((1:t_burn/deltat)*deltat, mdot_ox*KGtoLBM, 'r')
 hold on
-plot((1:t_burn/deltat)*deltat, mdot_fuel/KGtoLBM, 'c')
-plot((1:t_burn/deltat)*deltat, mdot_total/KGtoLBM, 'k')
+plot((1:t_burn/deltat)*deltat, mdot_fuel*KGtoLBM, 'c')
+plot((1:t_burn/deltat)*deltat, mdot_total*KGtoLBM, 'k')
 axis([0, 13, 0, 1]);
 title('Ox and Prop Mass Flow Rates');
 xlabel('Time (s)')

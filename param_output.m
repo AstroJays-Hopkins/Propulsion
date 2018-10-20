@@ -4,15 +4,15 @@ LBFtoN = 4.44822; %[lbf to N]
 MtoIN = 39.3701; %[m to in]
 KGtoLBM = 2.20462; %[kg to lbm]
 
-load('BJ01_motor_params_100418.mat');
+load('BJ01_motor_params_101718.mat');
 
-fid = fopen('BJ-01_motor_params_100418.txt', 'w');
+fid = fopen('BJ-01_motor_params_101718.txt', 'w');
 
 fprintf(fid, 'ASTROJAYS\nBJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m\nUpdated Oct 04, 2018\n\n\n\n');
 
 fprintf(fid, 'GENERAL MOTOR PERFORMANCE\n');
 fprintf(fid,'**************************************************************\n');
-fprintf(fid, 'Isp (s): %f\tTotal Impulse (N.s); %f\nBurn Time (s): %f\tMax Thrust (lbf): %f\nOF Ratio: %f\nFlight Ceiling, VERY rough esimate (ft): %f\nMaximum G Force (g): %f\n', Isp, I_total, t_burn, Thrust_max/LBFtoN, OF, max(altitude_FS)*MtoIN/12, max(g_force));
+fprintf(fid, 'Isp (s): %f\tTotal Impulse (N.s); %f\nBurn Time (s): %f\tMax Thrust (lbf): %f\nOF Ratio: %f\nFlight Ceiling, VERY rough esimate (ft): %f\nMaximum G Force (g): %f\n', Isp, I_total, t_burn, max(T(3:end))/LBFtoN, OF, max(altitude_FS)*MtoIN/12, max(g_force(3:end)));
 fprintf(fid,'**************************************************************\n\n\n');
 
 fprintf(fid, 'INITIAL ISENTROPIC FLOW CALCULATIONS\n');
@@ -33,7 +33,7 @@ fprintf(fid, '**************************************************************\n\n
 
 fprintf(fid, 'RUN TANK DESIGN PARAMETERS\n');
 fprintf(fid, '**************************************************************\n');
-fprintf(fid, 'Oxizider Mass (lbm): %f\nEstimated Ox Mass Flow Rate (lbm/s): %f\n', m_ox, mdot_ox(20)*KGtoLBM);
+fprintf(fid, 'Oxizider Mass (lbm): %f\nEstimated Ox Mass Flow Rate (lbm/s): %f\n', m_ox*KGtoLBM, mdot_ox(20)*KGtoLBM);
 fprintf(fid, '**************************************************************\n\n\n\nEND OUTPUT');
 
 fclose(fid);
