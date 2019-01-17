@@ -285,7 +285,7 @@ plot((1:t_burn/deltat)*deltat, mdot_ox*KGtoLBM, 'r')
 hold on
 plot((1:t_burn/deltat)*deltat, mdot_fuel*KGtoLBM, 'c')
 plot((1:t_burn/deltat)*deltat, mdot_total*KGtoLBM, 'k')
-axis([0, 13, 0, 1]);
+axis([0, 13, 0, 4]);
 title('Ox and Prop Mass Flow Rates');
 xlabel('Time (s)')
 ylabel('Mass Flow Rate (lbm/s)');
@@ -301,11 +301,11 @@ time = linspace(0, flight_time, timesteps);
 acceleration_FS = zeros(1, timesteps);
 altitude_FS = zeros(1, timesteps); %initial altitude
 velocity_FS = zeros(1, timesteps); %initial velocity
-CA = 3.1415 * 0.0889^2; %6in DIA, cross sectional area of rocket
+CA = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
 
-m_pl = 0; %payload mass, kg
-m_structure = 5.44 + 2.7*2 + 3; %mass of structure and engine
-m_propsys = 20;
+m_pl = 4; %payload mass, kg
+m_structure = 20.9; %mass of structure and engine
+m_propsys = 20; %dry mass of prop system
 m_fuelox_FS = m_fuel + m_ox;
 
 m_total_FS = zeros(1, timesteps);
@@ -367,20 +367,20 @@ subplot(3,1,1)
 plot(time, altitude_FS*(MtoIN/12), 'r')
 axis([0, flight_time, 0, 35000]);
 title('BJ-01 Flight Trajectory');
-xlabel('time (s)');
+xlabel('Time (s)');
 ylabel('altitude (ft)');
 
 subplot(3,1,2)   
 plot(time, Ma, 'r');
 axis([0, flight_time, 0, 2]);
 title('Mach Number');
-xlabel('time (s)');
+xlabel('Time (s)');
 ylabel('Ma');
 
 subplot(3,1,3)
 plot(time, g_force, 'k');
 axis([0, flight_time, min(g_force), max(g_force)]);
 title('G Forces')
-xlabel('time (s)');
+xlabel('Time (s)');
 ylabel('G Force (g)');
 hold off
