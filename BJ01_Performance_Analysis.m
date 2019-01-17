@@ -191,7 +191,7 @@ m_fuel = rho_fuel*L_fuel*pi*((rout_fuel^2)-(rin_fuel^2));
 
 %% Run Tank Sizing & "Ullage"/Head Space Calculations
 
-% SEE "BJ01_Performance_Analysis_SI.m"
+% SEE Critical_3.25IR calculations spreadsheet
 
 %% PLOT - ENGINE PERFORMANCE
 figure(1)
