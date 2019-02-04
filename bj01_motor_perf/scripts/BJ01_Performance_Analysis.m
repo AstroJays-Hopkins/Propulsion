@@ -1,6 +1,6 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
 %Written by Andrew Colombo & Dan Zanko
-%Updated Oct 17, 2018
+%Updated Feb 2, 2019
 %
 %BOTH SI & IMPERIAL UNITS
 %
@@ -111,8 +111,9 @@ iter = 1; %initialize throat area iterative tracker
 A_star(1) = A_star_guess;
 
 %Injector orifice diameter calc
+C_D = 0.9;  %dischange coeff
 r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*((5.06-3.7+0)*10^6))*pi)); %[m] calculates injector orifice radius
-A_inj = pi()*(r_inj)^2; %[m^2] Injector area
+A_inj = (pi()*(r_inj)^2)/0.9; %[m^2] Injector area
 
 % Ballistic constants taken from Waxman dissertation
 a = 5e-2;
@@ -133,7 +134,7 @@ while true
     P_c(1) = 14.6959 * PSItoPa; %[psi to Pa] Combustion chamber pressure equal to atmospheric at start
     
     P_RT = zeros(1, t_burn/deltat); %[Pa] RUN TANK PRESSURE
-    P_RT(1) = 825 * PSItoPa; %[psi to Pa] Max expected run tank pressure
+    P_RT(1) = 801 * PSItoPa; %[psi to Pa] Max expected run tank pressure
     P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of the Run Tank per time step
     
     deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
@@ -144,7 +145,7 @@ while true
     m_ox = 0;
     
     for t = 1:((t_burn/deltat)-1)
-       mdot_ox(t) = A_inj*sqrt(2*(deltaP(t))*rho_n2o_l); %Need to implement Babitskiy model to account for 2-phase flow.
+       mdot_ox(t) = A_inj*C_D*sqrt(2*(deltaP(t))*rho_n2o_l); %Need to implement Babitskiy model to account for 2-phase flow.
        m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
 
        Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
