@@ -1,6 +1,6 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
 %Written by Andrew Colombo & Dan Zanko
-%Updated Feb 2, 2019
+%Updated Mar 16, 2019
 %
 %BOTH SI & IMPERIAL UNITS
 %
@@ -15,6 +15,12 @@
 %8. Flight sim
 %9. Plot flight simulation results
 
+%% unit conversions
+PSItoPa = 6894.74; %[psi to Pa]
+LBFtoN = 4.44822; %[lbf to N]
+MtoIN = 39.3701; %[m to in]
+KGtoLBM = 2.20462; %[kg to lbm]
+
 %% INITIALIZATION
 %constant initialization, SI units due to ProPep3 output
 k_c = 1.246; %[] ratio of specific heats of combustion chamber constituents, from ProPep3
@@ -22,6 +28,9 @@ k_e = 1.257; %[] ratio of specific heats of exhaust constituents, from ProPep3
 P_drop = 0.6666666; %[] fraction of Run Tank pressure after emptying
 t_burn = 13; %[s]
 deltat = 0.01; %[s] time step for simulation
+
+P_RT_i = 801 * PSItoPa; %starting RT pressure [Pa]
+P_RT_f = P_RT_i * P_drop; %end RT pressure [Pa]
 
 
 MM = 25.781; %[g/mol] Molecular mass of combustion constituents
@@ -42,14 +51,11 @@ P_c = zeros(1, t_burn/deltat); %[Pa] CHAMBER PRESSURE
 P_RT = zeros(1, t_burn/deltat); %[Pa] RUN TANK PRESSURE
 u_e = zeros(1, t_burn/deltat); %[m/s] EXHAUST EXIT VELOCITY
 P_e_TC = zeros(1, t_burn/deltat); %[Pa] EXHAUST PRESSURE
-deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
+deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENCE BETWEEN RT AND CHAMBER - Minor Losses
+deltaP_minor = zeros(1, t_burn/deltat); %[Pa] Minor losses
 C_characteristic = zeros(1, t_burn/deltat); %[m/s]
 
-%unit conversions
-PSItoPa = 6894.74; %[psi to Pa]
-LBFtoN = 4.44822; %[lbf to N]
-MtoIN = 39.3701; %[m to in]
-KGtoLBM = 2.20462; %[kg to lbm]
+
 
 
 %% Combustion flow CONSTANTS & Initial Isentropic Calculations to Grab Initial Engine Parameters
@@ -101,9 +107,6 @@ m_ox = m_total*(OF/(OF+1)); %[kg] ESTIMATE mass of oxidizer
 L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2))); %SET fuel length
 
 
-rho_n2o_l = 752.89; %FOR T=75ºF, density of n2o liquid, kg/m^3
-rho_n2o_v = 181.1176; %FOR T=75ºF, density of n2o vapour, kg/m^3
-
 %% thrust curve estimation, sea level
 %Vector initialization
 A_star_prev = 0; %initialize tracker for throat area
@@ -111,6 +114,7 @@ iter = 1; %initialize throat area iterative tracker
 A_star(1) = A_star_guess;
 
 %Injector orifice diameter calc
+rho_n2o_l = densitylookup_n2o_SI(P_RT_i);
 C_D = 0.9;  %dischange coeff
 r_inj = sqrt((m_ox/t_burn)/(sqrt(2*rho_n2o_l*((5.06-3.7+0)*10^6))*pi)); %[m] calculates injector orifice radius
 A_inj = (pi()*(r_inj)^2)/0.9; %[m^2] Injector area
@@ -134,18 +138,21 @@ while true
     P_c(1) = 14.6959 * PSItoPa; %[psi to Pa] Combustion chamber pressure equal to atmospheric at start
     
     P_RT = zeros(1, t_burn/deltat); %[Pa] RUN TANK PRESSURE
-    P_RT(1) = 801 * PSItoPa; %[psi to Pa] Max expected run tank pressure
+    P_RT(1) = P_RT_i; %[Pa] Max expected run tank pressure
     P_drop_per_step = (P_RT(1)-P_RT(1)*P_drop)/(t_burn/deltat); %Pressure drop of the Run Tank per time step
     
-    deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENT BETWEEN RT AND CHAMBER
+    deltaP = zeros(1, t_burn/deltat); %[Pa] Injector pressure drop
     deltaP(1) = P_RT(1) - P_c(1);
     
     rho_star_TC = 2.1; %initialize for the first iteration...changes on t=2
     C_characteristic(1) = 1550; %[m/s] characteristic exhaust velocity (set by propep3)
     m_ox = 0;
     
+    
     for t = 1:((t_burn/deltat)-1)
-       mdot_ox(t) = A_inj*C_D*sqrt(2*(deltaP(t))*rho_n2o_l); %Need to implement Babitskiy model to account for 2-phase flow.
+       rho_n2o_l = densitylookup_n2o_SI(P_RT(t));
+        
+       mdot_ox(t) = A_inj*C_D*sqrt(2*(deltaP(t))*rho_n2o_l);
        m_ox = m_ox + mdot_ox(t) * deltat; %calculate the total oxidizer used
 
        Go(t) = mdot_ox(t)/(pi*r(t)^2); %calculate oxizider mass flux
@@ -189,7 +196,14 @@ while true
 
        P_c(t+1) = mdot_total(t)*C_characteristic(t)/A_star(iter);
 
-       deltaP(t+1) = P_RT(t+1)-P_c(t+1);
+       %Minor losses
+       A_min_plumbing = 3.1415*(0.010795/2)^2;
+       v_fluid = mdot_ox(t)/(rho_n2o_l * A_min_plumbing);
+       deltaP_minor_3tree = 0.54 * rho_n2o_l * v_fluid^2 /2;
+       deltaP_minor_ball = 0.08 * rho_n2o_l * v_fluid^2 /2;
+       deltaP_minor(t) = deltaP_minor_3tree + deltaP_minor_ball;
+       
+       deltaP(t+1) = P_RT(t+1)-P_c(t+1) - deltaP_minor(t);
 
        %Without the conditional below, the chamber pressure oscillates too
        %wildly - resulting in the chamber pressure momentarily reaching above
@@ -198,7 +212,7 @@ while true
 
        %Averages out the oscillations of the chamber pressure during startup to avoid code breaking
 
-       epsilon = 0.001e6; %adjust to achieve smaller oscillations
+       epsilon = 0.001e6; %adjust to dampen pressure oscillations
 
        if abs(P_c(t+1) - P_c(t)) > epsilon
            deltaP(t+1) = (deltaP(t)+deltaP(t+1))/2;
@@ -274,11 +288,12 @@ plot((1:t_burn/deltat)*deltat, P_c/PSItoPa, 'r')
 hold on
 plot((1:t_burn/deltat)*deltat, P_RT/PSItoPa, 'c')
 plot((1:t_burn/deltat)*deltat, deltaP/PSItoPa, 'k')
+plot((1:t_burn/deltat)*deltat, deltaP_minor/PSItoPa, 'k')
 axis([0, 13, 0, 1000]);
-title('Run Tank & Combustion Pressure');
+title('System Pressures');
 xlabel('Time (s)')
 ylabel('Pressure (psi)');
-legend('Chamber Pressure', 'Run Tank Pressure', 'Pressure Difference b/w RT and Chamber');
+legend('Chamber Pressure', 'Run Tank Pressure', 'Inj Pressure Drop', 'Minor Losses');
 hold off
 
 figure(3)
@@ -293,6 +308,16 @@ ylabel('Mass Flow Rate (lbm/s)');
 legend('Oxidizer MFR', 'Propellant MFR', 'Total MFR');
 hold off
 
+figure(4)
+plot((1:t_burn/deltat)*deltat, T./(mdot_total*9.81))
+hold on
+axis([0, 13, 0, 300]);
+title('Isp');
+xlabel('Time (s)')
+ylabel('Isp (s)');
+hold off
+
+
 
 %% Flight Sim
 flight_time = 60; %seconds
@@ -305,7 +330,7 @@ velocity_FS = zeros(1, timesteps); %initial velocity
 CA = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
 
 m_pl = 4; %payload mass, kg
-m_structure = 20.9; %mass of structure and engine
+m_structure = 10.4; %mass of structure
 m_propsys = 20; %dry mass of prop system
 m_fuelox_FS = m_fuel + m_ox;
 
@@ -326,13 +351,13 @@ for t = 2:timesteps
         
         
         if velocity_FS(t-1) ~= 0
-            c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t-1))/densitylookup_SI(altitude_FS(t-1)));
+            c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t-1))/densitylookup_alt_SI(altitude_FS(t-1)));
             Ma = abs(velocity_FS(t-1))/c;
             
             if velocity_FS(t-1) > 0
-                F_d(t) = -0.5 * CDcurve(Ma) * 1 * densitylookup_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
+                F_d(t) = -0.5 * CDcurve(Ma) * 1 * densitylookup_alt_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
             else
-                F_d(t) = 0.5 * CDcurve(Ma) * densitylookup_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
+                F_d(t) = 0.5 * CDcurve(Ma) * densitylookup_alt_SI(altitude_FS(t-1)) * CA * (abs(velocity_FS(t-1))^2);
             end
         end
 
@@ -353,7 +378,7 @@ end
 
 Ma = zeros(1, timesteps);
 for t = 1:timesteps
-    c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t))/densitylookup_SI(altitude_FS(t)));
+    c = sqrt(1.4 * pressurelookup_SI(altitude_FS(t))/densitylookup_alt_SI(altitude_FS(t)));
     Ma(t) = abs(velocity_FS(t))/c;
 end
 
@@ -362,7 +387,7 @@ g_force = acceleration_FS/9.81;
 max(altitude_FS * 3.28084)
 
 %% PLOT - FLIGHT
-figure(4)
+figure(5)
 hold on
 subplot(3,1,1)
 plot(time, altitude_FS*(MtoIN/12), 'r')

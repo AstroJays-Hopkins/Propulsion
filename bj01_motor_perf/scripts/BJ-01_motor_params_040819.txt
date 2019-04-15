@@ -1,0 +1,60 @@
+ASTROJAYS
+BJ-01 MOTOR PARAMETERS CALCULATED BY thrust_curve.m
+Updated Mar 16, 2019
+
+
+
+GENERAL MOTOR PERFORMANCE
+**************************************************************
+Isp (s): 236.447320	Total Impulse (N.s); 39625.398942
+Burn Time (s): 13.000000	Max Thrust (lbf): 786.128353
+OF Ratio: 7.000000
+Flight Ceiling, VERY rough esimate (ft): 34219.527188
+Maximum G Force (g): 5.940706
+**************************************************************
+
+
+INITIAL ISENTROPIC FLOW CALCULATIONS
+**************************************************************
+CHAMBER CONDITIONS:
+
+Pressure (psi): 559.922305	Temperature (K): 3186.276353
+Velocity (m/s): 0
+**************************************************************
+THROAT CONDITIONS:
+
+Pressure (psi): 291.731812	Temperature (K): 2907.836153
+Velocity (m/s): 1085.694744	Density (kg/m^3): 2.126201
+**************************************************************
+NOZZLE EXIT CONDITIONS:
+
+Pressure (psi): 14.692360	Temperature (K): 1578.371779
+Velocity (m/s): 2336.462789
+**************************************************************
+
+
+
+ENGINE DESIGN PARAMETERS
+**************************************************************
+Propellant Mass (lbm): 5.051184
+Initial Inner Port Radius (in): 0.996225
+Outer Propellant Radius (in): 1.491416
+Length of Propellant Grain (in): 38.639946
+
+Expansion Ratio: 5.048302
+Inlet Diameter (in): 2.982833
+Throat Diameter (in): 1.109299
+Exit Diameter (in): 2.492421
+**************************************************************
+
+
+
+RUN TANK DESIGN PARAMETERS
+**************************************************************
+Oxizider Mass (lbm): 33.784670
+Estimated Ox Mass Flow Rate (lbm/s): 2.964527
+**************************************************************
+
+
+
+END OUTPUT
