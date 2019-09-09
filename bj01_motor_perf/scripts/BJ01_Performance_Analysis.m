@@ -5,6 +5,7 @@
 %BOTH SI & IMPERIAL UNITS
 %
 %Structure of script:
+%0. Unit conversion constants
 %1. Initialization of constants and vectors
 %2. Initial isentropic calculations to estimate engine size parameters
 %3. Engine size estimates
@@ -15,13 +16,13 @@
 %8. Flight sim
 %9. Plot flight simulation results
 
-%% unit conversions
+%% 0. Unit Conversions
 PSItoPa = 6894.74; %[psi to Pa]
 LBFtoN = 4.44822; %[lbf to N]
 MtoIN = 39.3701; %[m to in]
 KGtoLBM = 2.20462; %[kg to lbm]
 
-%% INITIALIZATION
+%% 1. Initialization 
 %constant initialization, SI units due to ProPep3 output
 k_c = 1.246; %[] ratio of specific heats of combustion chamber constituents, from ProPep3
 k_e = 1.257; %[] ratio of specific heats of exhaust constituents, from ProPep3
@@ -53,34 +54,31 @@ u_e = zeros(1, t_burn/deltat); %[m/s] EXHAUST EXIT VELOCITY
 P_e_TC = zeros(1, t_burn/deltat); %[Pa] EXHAUST PRESSURE
 deltaP = zeros(1, t_burn/deltat); %[Pa] PRESSURE DIFFERENCE BETWEEN RT AND CHAMBER - Minor Losses
 deltaP_minor = zeros(1, t_burn/deltat); %[Pa] Minor losses
-C_characteristic = zeros(1, t_burn/deltat); %[m/s]
+C_characteristic = zeros(1, t_burn/deltat); %[m/s]\
 
-
-
-
-%% Combustion flow CONSTANTS & Initial Isentropic Calculations to Grab Initial Engine Parameters
+%% 2. Combustion flow constants & Initial Isentropic Calculations to Grab Initial Engine Parameters
 %Initialize chamber pressure at target value and calculate isentropic flow
 %conditions down nozzle to get estimates to size engine
 
-%CHAMBER, all parameters defined by ProPep3
-P_c(1) = 525 * PSItoPa; %[psi -> Pa] Initialize chamber pressure at target value, Pa
+%CHAMBER CONDITIONS, all parameters defined by ProPep3
+P_c(1) = 525 * PSItoPa; %[psi -> Pa] Initialize chamber pressure at target value, [Pa]
 T_c = (3291+3240)/2; %[K] Average Chamber temp (from ProPep3) Note: chamber temp does not vary significantly with changing OF ratio and chamber pressure
 
-%THROAT
+%THROAT CONDITIONS
 T_star = T_c*(1+(k_c-1)/2)^-1;
 P_star = P_c(1)*(T_star/T_c)^(k_c/(k_c-1));
 c_star = sqrt(k_e*R*T_star); %speed of sound at throat
 u_star = c_star; %M=1 at throat
 rho_star = k_c*P_star/(c_star^2);
 
-%EXHAUST
-P_e = pressurelookup_SI(0); %pressure at nozzle exit
-T_e = T_star*(P_e/P_star)^((k_e-1)/k_e); %NEED TO DEFINE AMBIENT PRESSURE
+%EXHAUST CONDITIONS
+P_e = pressurelookup_SI(0); % [Pa] pressure at nozzle exit (assuming elevation of 0m)
+T_e = T_star*(P_e/P_star)^((k_e-1)/k_e); %[K] temperature at nozzle exit
 c_e = sqrt(k_e*R*T_e); %[m/s] speed of sound at nozzle exit
-u_e(1) = sqrt(((2*k_e*R*T_star*(1-(P_e/P_star)^((k_e-1)/k_e)))/(k_e-1))+u_star^2); %gas velocity of exhaust
-M_e = u_e(1)/c_e; %Mach number of exhaust
+u_e(1) = sqrt(((2*k_e*R*T_star*(1-(P_e/P_star)^((k_e-1)/k_e)))/(k_e-1))+u_star^2); %[m/s] gas velocity at nozzle exit
+M_e = u_e(1)/c_e; %[-] Mach number at nozzle exit
 
-%% Design of motor based on estimated performance parameters calculated above
+%% 3. Design of motor based on estimated performance parameters calculated above
 ER = (1/M_e)*sqrt(((1+((k_e-1)/2)*M_e^2)/(1+(k_e-1)/2))^((k_e+1)/(k_e-1))); %Expansion ratio of nozzle, expanding to pressure at estimated altitude for mid-burn
 OF = 7; %7:1, initial oxidizer to fuel ratio
 
@@ -94,20 +92,18 @@ D_e = sqrt(4*A_e/3.1415);
 
 flux_SF = 1.75; %safety factor for ox mass flux
 G_max = 870/flux_SF; %[kg/m^2*s] maximum estimated mass flux through port to avoid flameout with SF, based on AspireSpace literature which says 870 kg/m2.s
-rin_fuel = sqrt((1/G_max)/3.1415);
+rin_fuel = sqrt((1/G_max)/pi);
 
 rho_fuel = 935; %[kg/m^3] Density of HDPE
 
 rdot_estimate = 0.0012; %[m/s] ESTIMATE average regression rate = 1.2 mm/s, from Aspire Space
-% rout_fuel = rin_fuel+rdot_estimate*t_burn; %[m] ESTIMATE outer radius of fuel
-rout_fuel = 0.0381; %setting max fuel diameter to 3in
+rout_fuel = 1.5*0.0254; %[in -> m]setting max fuel diameter to 3in in meters
 m_total = mdot_estimate*t_burn; %[kg] ESTIMATE total fuel + ox
 m_fuel = m_total*(1/(OF+1)); %[kg] ESTIMATE mass of fuel
 m_ox = m_total*(OF/(OF+1)); %[kg] ESTIMATE mass of oxidizer
-L_fuel = m_fuel/(rho_fuel*3.1415*((rout_fuel^2)-(rin_fuel^2))); %SET fuel length
+L_fuel = m_fuel/(rho_fuel*pi*((rout_fuel^2)-(rin_fuel^2))); % [m] calculating required fuel length
 
-
-%% thrust curve estimation, sea level
+%% 4. Thrust curve estimation (at sea level)
 %Vector initialization
 A_star_prev = 0; %initialize tracker for throat area
 iter = 1; %initialize throat area iterative tracker
@@ -124,7 +120,7 @@ a = 5e-2;
 n = 0.5;
 
 %Knockdown factors
-Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15degree half angle conical nozzle vs ideal bell nozzle
+Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 Combustion_Efficiency = 1;
 
@@ -248,17 +244,16 @@ end
 
 Isp = T(2)/(mdot_total(2)*9.81); %ProPep3 
 
-%% ENGINE SIZING PARAMETERS 
+%% 5. Engine Sizing Parameters 
 %Based on usage during burn
 rout_fuel = r(((t_burn/deltat)-1)); %set outer radius of propellant to the final burn radius
 m_fuel = rho_fuel*L_fuel*pi*((rout_fuel^2)-(rin_fuel^2));
 
-
-%% Run Tank Sizing & "Ullage"/Head Space Calculations
+%% 6. Run Tank Sizing & "Ullage"/Head Space Calculations
 
 % SEE "BJ01_Performance_Analysis_SI.m"
 
-%% PLOT - ENGINE PERFORMANCE
+%% 7. PLOT - Engine Performance
 figure(1)
 subplot(3,1,1)
 hold on
@@ -317,9 +312,9 @@ xlabel('Time (s)')
 ylabel('Isp (s)');
 hold off
 
+%% -------------------------- %%
 
-
-%% Flight Sim
+%% 8. Flight Sim
 flight_time = 60; %seconds
 timesteps = flight_time/deltat;
 time = linspace(0, flight_time, timesteps);
@@ -386,7 +381,7 @@ g_force = acceleration_FS/9.81;
 
 max(altitude_FS * 3.28084)
 
-%% PLOT - FLIGHT
+%% 9. PLOT - Flight Sim Results
 figure(5)
 hold on
 subplot(3,1,1)
