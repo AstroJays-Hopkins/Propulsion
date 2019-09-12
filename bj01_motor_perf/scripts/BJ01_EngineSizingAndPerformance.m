@@ -1,5 +1,7 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
 %Written by Andrew Colombo & Dan Zanko
+%Updated Mar 16, 2019
+%
 %BOTH SI & IMPERIAL UNITS
 %
 %Structure of script:
@@ -118,7 +120,7 @@ a = 5e-2;
 n = 0.5;
 
 %Knockdown factors
-Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15ï¿½ half angle of divergence conical nozzle vs ideal bell nozzle
+Conical_Nozzle_Correction_Factor = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 Chamber_Throat_Area_Ratio_Knockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 Combustion_Efficiency = 1;
 
