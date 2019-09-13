@@ -24,6 +24,12 @@
 %   cylindrical port
 % - Nozzle is conical
 
+
+clear, clc, close all
+addpath /BJ-01 Motor Sims/Burn Sim Scripts
+addpath /BJ-01 Motor Sims/functions
+addpath /N2O Properties
+
 %% 0. Unit Conversions
 Conv.PSItoPa = 6894.74; %[psi to Pa]
 Conv.LBFtoN = 4.44822; %[lbf to N]
