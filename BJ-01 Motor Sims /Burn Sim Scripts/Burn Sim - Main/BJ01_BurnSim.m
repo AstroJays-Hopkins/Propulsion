@@ -85,8 +85,8 @@ RT.liq.temperature = ; % initial temperature of bulk N2O liquid [°F]
 Fuel.InnerR = /conv.MtoIN; % initial inner radius of solid fuel port [in --> m]
 
 % ------ Nozzle Init Conditions ------ %
-Nozzle.throat.dia = ; % initial throat diameter of nozzle [ft]
-Nozzle.exit.dia = ; % initial exit diameter of nozzle [ft]
+Nozzle.throat.dia = ; % initial throat diameter of nozzle [in --> m]
+Nozzle.exit.dia = ; % initial exit diameter of nozzle [in --> m]
 
 
 
