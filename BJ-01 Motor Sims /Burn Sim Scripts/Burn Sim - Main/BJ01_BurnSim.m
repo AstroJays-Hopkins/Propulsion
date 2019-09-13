@@ -9,14 +9,17 @@
 % 0. Unit conversion constants
 % 1. Inputting Engine Geometry (at start of burn)
 % 2. Initial Conditions of Burn
+% 3. Simulation Options/Config
+% 4. Initialization of Simulation
 
 % ----------------
 % NOMENCLATURE:
 % - "RT" = "Run Tank", the flight oxidizer tank
 % - "liq" = refers to the bulk liquid phase of N2O in the RT
 % - "ull" = refers to the "ullage" in the RT
-% - "CC" = "Combustion Chamber", the 
-
+% - "CC" = "Combustion Chamber", the assembly which houses the solid fuel
+% - "amb" = ambient conditions
+% - "traj" = flight trajectory
 
 % -------------
 % NOTES:
@@ -75,19 +78,25 @@ Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad
 %% 2. Initial Conditions (& those that are engineer variable)
 
 % ------ Ambient Init Conditions ------ %
-Amb.alt = /Conv.MtoFT; % altitude above sea-level at start of burn [ft --> m]
+amb.alt = /Conv.MtoFT; % altitude above sea-level at start of burn [ft --> m]
 
 % ------ Run Tank Init Conditions ------ %
 RT.bulk.mass = /Conv.KGtoLBM; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
 RT.liq.temperature = ; % initial temperature of bulk N2O liquid [°F]
 
 % ------ Fuel Init Conditions ------ %
-Fuel.InnerR = /conv.MtoIN; % initial inner radius of solid fuel port [in --> m]
+Fuel.InnerR = /Conv.MtoIN; % initial inner radius of solid fuel port [in --> m]
 
 % ------ Nozzle Init Conditions ------ %
 Nozzle.throat.dia = ; % initial throat diameter of nozzle [in --> m]
 Nozzle.exit.dia = ; % initial exit diameter of nozzle [in --> m]
 
+%% 3. Simulation Config 
+
+tstep = 0.1; % delta-t we use for our time-stepping simulation
+flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+
+%% 4. Initialization of Sim
 
 
 
