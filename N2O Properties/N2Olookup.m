@@ -19,7 +19,7 @@ function [value] = N2Olookup(input_type,input,quality,prop)
 %       - prop = the property you want
             % OPTIONS
             % 'temperature' = Saturation temperature [°C] (INPUT TYPE MUST BE PRESSURE)
-            % 'pressure' .  = Saturation pressure [°C] (INPUT TYPE MUST BE TEMPERATURE)
+            % 'pressure' .  = Saturation pressure [kPa] (INPUT TYPE MUST BE TEMPERATURE)
             % 'cp'          = Const Pressure Specific Heat Capacity [kJ/kg*K]
             % 'cv'          = Const Volume Specific Heat Capacity [kJ/kg*K]
             % 'density'     = Density [kg/m^3]

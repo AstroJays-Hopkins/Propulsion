@@ -17,12 +17,16 @@ for n1 = CF1.DumpInd(1,1):CF1.DumpInd(2,1)
     ind = n1 - CF1.DumpInd(1) + 1;
     CF1.rho(ind,1) = N2Olookup("pressure",CF1.PT1(n1)*6.89476,0,'density')*0.00194032; % looks up density via PT1 and assuming Q = 0 and converting to US [slug/ft^3]
     CF1.Q(ind,1) = -(CF1.mdot(n1)*0.031081)/CF1.rho(ind,1);
-    CF1.deltaP(ind,1) = (CF1.PT1(n1) - P_atm); % gauge pressure [psig]
-    CF1.CdA(ind,1) = abs((CF1.mdot(n1)*0.031081)/sqrt(abs(2*CF1.rho(ind,1)*CF1.deltaP(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
+    CF1.deltaP.Inj(ind,1) = (CF1.PT2(n1) - P_atm); % gauge pressure (inj. - atm) [psig]
+    CF1.CdA.Inj(ind,1) = abs((CF1.mdot(n1)*0.031081)/sqrt(abs(2*CF1.rho(ind,1)*CF1.deltaP.Inj(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
+    CF1.deltaP.Tot(ind,1) = (CF1.PT1(n1) - P_atm); % gauge pressure (tank - atm) [psig]
+    CF1.CdA.Tot(ind,1) = abs((CF1.mdot(n1)*0.031081)/sqrt(abs(2*CF1.rho(ind,1)*CF1.deltaP.Tot(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
 end
-CF1.avgCdA = mean(CF1.CdA);
-CF1.Cd = CF1.CdA/A_inj;
-CF1.avgCd = mean(CF1.Cd);
+CF1.CdA.avgInj = mean(CF1.CdA.Inj);
+CF1.Cd.Inj = CF1.CdA.avgInj./A_inj;
+CF1.CdA.avgTot = mean(CF1.CdA.Tot);
+CF1.Cd.Tot = CF1.CdA.avgTot./A_inj;
+
 
 %% Cold Flow 2
 CF2.dumptime = CF2.time(CF2.DumpInd(1,1):CF2.DumpInd(2,1)) - CF2.time(CF2.DumpInd(1,1)); % setting up a new time vector
@@ -31,9 +35,12 @@ for n2 = CF2.DumpInd(1,1):CF2.DumpInd(2,1)
     ind = n2 - CF2.DumpInd(1) + 1;
     CF2.rho(ind,1) = N2Olookup("pressure",CF2.PT2(n2)*6.89476,0,'density')*0.00194032; % looks up density via PT1 and assuming Q = 0 and converting to US [slug/ft^3]
     CF2.Q(ind,1) = -(CF2.mdot(n2)*0.031081)/CF2.rho(ind,1);
-    CF2.deltaP(ind,1) = (CF2.PT2(n2) - P_atm); % gauge pressure [psig]
-    CF2.CdA(ind,1) = abs((CF2.mdot(n2)*0.031081)/sqrt(abs(2*CF2.rho(ind,1)*CF2.deltaP(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
+    CF2.deltaP.Inj(ind,1) = (CF2.PT2(n2) - P_atm); % gauge pressure (inj. - atm) [psig]
+    CF2.CdA.Inj(ind,1) = abs((CF2.mdot(n2)*0.031081)/sqrt(abs(2*CF2.rho(ind,1)*CF2.deltaP.Inj(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
+    CF2.deltaP.Tot(ind,1) = (CF2.PT1(n2) - P_atm); % gauge pressure (tank - atm) [psig]
+    CF2.CdA.Tot(ind,1) = abs((CF2.mdot(n2)*0.031081)/sqrt(abs(2*CF2.rho(ind,1)*CF2.deltaP.Tot(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
 end
-CF2.avgCdA = mean(CF2.CdA);
-CF2.Cd = CF2.CdA/A_inj;
-CF2.avgCd = mean(CF2.Cd);
+CF2.CdA.avgInj = mean(CF2.CdA.Inj);
+CF2.Cd.Inj = CF2.CdA.avgInj./A_inj;
+CF2.CdA.avgTot = mean(CF2.CdA.Tot);
+CF2.Cd.Tot = CF2.CdA.avgTot./A_inj;

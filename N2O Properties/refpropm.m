@@ -195,11 +195,11 @@ if ~libisloaded(libName)
             BasePath = '/usr/local/REFPROP/';
             FluidDir = 'FLUIDS/';
         otherwise
-            BasePath = 'C:\Program Files\REFPROP\';
-            FluidDir = 'fluids\';
+            BasePath = 'C:\Program Files\MINI-REFPROP\';
+            FluidDir = 'FLUIDS\';
 
             if ~exist(BasePath,'dir')
-                BasePath = 'C:\Program Files (x86)\REFPROP\';
+                BasePath = 'C:\Program Files (x86)\MINI-REFPROP\';
             end
 
             if archstr == 'win64'
