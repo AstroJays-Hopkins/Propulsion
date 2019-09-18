@@ -23,11 +23,25 @@ for n1 = CF1.DumpInd(1,1):CF1.DumpInd(2,1)
     CF1.deltaP.Tot(ind,1) = (CF1.PT1(n1)); % gauge pressure (tank - atm) [psig]
     CF1.CdA.Tot(ind,1) = abs((CF1.mdot(n1)*0.031081)/sqrt(abs(2*CF1.rho(ind,1)*CF1.deltaP.Tot(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
     CF1.Cd.Tot(ind,1) = CF1.CdA.Tot(ind,1)/A_inj;
+    CF1.InjCavNum(ind,1) = (CF1.PT2(n1) - CF1.PT1(n1))/(CF1.PT2(n1)); % takes PT1 as sat pressure, discharge from PT2 to ambient
+    CF1.deltaP.PTs(ind,1) = (CF1.PT1(n1)-CF1.PT2(n1)); % gauge pressure (tank - atm) [psig]
+   
+
 end
+
 CF1.CdA.avgInj = mean(CF1.CdA.Inj(21:length(CF1.CdA.Inj)));
 CF1.Cd.avgInj = mean(CF1.Cd.Inj(21:length(CF1.Cd.Inj)));
 CF1.CdA.avgTot = mean(CF1.CdA.Tot(21:length(CF1.CdA.Tot)));
 CF1.Cd.avgTot = mean(CF1.Cd.Tot(21:length(CF1.Cd.Tot)));
+
+figure, hold on
+plot(CF1.dumptime, CF1.PT1(CF1.DumpInd(1,1):CF1.DumpInd(2,1))),
+[CF1Ax,CF1Line1,CF1Line2] = plotyy(CF1.dumptime, CF1.PT2(CF1.DumpInd(1,1):CF1.DumpInd(2,1)), CF1.dumptime, CF1.InjCavNum)
+ylabel(CF1Ax(1),'Pressure (psig)')
+ylabel(CF1Ax(2),'Cavitation Number')
+
+CF1Line2.LineStyle = ':';
+legend('PT1','PT2')
 
 
 %% Cold Flow 2
