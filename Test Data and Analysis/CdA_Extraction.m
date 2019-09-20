@@ -1,7 +1,8 @@
 %% Documentation
 % Cd*A Extraction for Cold Flow Tests 1 & 2
 % Original Author: Dan Zanko (09/04/2019)
-clear, clc
+clear, clc, close all
+addpath('N2O Properties')
 %% Setup
 % loading test data files
 load('ColdFlow1.mat')
@@ -25,23 +26,13 @@ for n1 = CF1.DumpInd(1,1):CF1.DumpInd(2,1)
     CF1.Cd.Tot(ind,1) = CF1.CdA.Tot(ind,1)/A_inj;
     CF1.InjCavNum(ind,1) = (CF1.PT2(n1) - CF1.PT1(n1))/(CF1.PT2(n1)); % takes PT1 as sat pressure, discharge from PT2 to ambient
     CF1.deltaP.PTs(ind,1) = (CF1.PT1(n1)-CF1.PT2(n1)); % gauge pressure (tank - atm) [psig]
-   
-
 end
-
+CF1.AVGmdot = (CF1.mass(CF1.DumpInd(1,1)) - CF1.mass(CF1.DumpInd(2,1)))/CF1.dumptime(length(CF1.dumptime));
+% CF1.CdA.netcalc = CF1.AVGmdot/sqrt(2*CF1.rho(1,1)*CF1.PT1(10))
 CF1.CdA.avgInj = mean(CF1.CdA.Inj(21:length(CF1.CdA.Inj)));
 CF1.Cd.avgInj = mean(CF1.Cd.Inj(21:length(CF1.Cd.Inj)));
 CF1.CdA.avgTot = mean(CF1.CdA.Tot(21:length(CF1.CdA.Tot)));
 CF1.Cd.avgTot = mean(CF1.Cd.Tot(21:length(CF1.Cd.Tot)));
-
-figure, hold on
-plot(CF1.dumptime, CF1.PT1(CF1.DumpInd(1,1):CF1.DumpInd(2,1))),
-[CF1Ax,CF1Line1,CF1Line2] = plotyy(CF1.dumptime, CF1.PT2(CF1.DumpInd(1,1):CF1.DumpInd(2,1)), CF1.dumptime, CF1.InjCavNum)
-ylabel(CF1Ax(1),'Pressure (psig)')
-ylabel(CF1Ax(2),'Cavitation Number')
-CF1Line2.LineStyle = ':';
-legend('PT1','PT2')
-
 
 %% Cold Flow 2
 CF2.dumptime = CF2.time(CF2.DumpInd(1,1):CF2.DumpInd(2,1)) - CF2.time(CF2.DumpInd(1,1)); % setting up a new time vector
@@ -56,9 +47,54 @@ for n2 = CF2.DumpInd(1,1):CF2.DumpInd(2,1)
     CF2.deltaP.Tot(ind,1) = CF2.PT1(n2); % gauge pressure (tank - atm) [psig]
     CF2.CdA.Tot(ind,1) = abs((CF2.mdot(n2)*0.031081)/sqrt(abs(2*CF2.rho(ind,1)*CF2.deltaP.Tot(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
     CF2.Cd.Tot(ind,1) = CF2.CdA.Tot(ind,1)/A_inj;
+    CF2.InjCavNum(ind,1) = (CF2.PT2(n2) - CF2.PT1(n2))/(CF2.PT2(n2)); % takes PT1 as sat pressure, discharge from PT2 to ambient
+    CF2.deltaP.PTs(ind,1) = (CF2.PT1(n2)-CF2.PT2(n2)); % gauge pressure (tank - atm) [psig]
 end
+CF2.AVGmdot = (CF2.mass(CF2.DumpInd(1,1)) - CF2.mass(CF2.DumpInd(2,1)))/CF2.dumptime(length(CF2.dumptime));
 CF2.CdA.avgInj = mean(CF2.CdA.Inj(21:length(CF2.CdA.Inj)));
 CF2.Cd.avgInj = mean(CF2.Cd.Inj(21:length(CF2.Cd.Inj)));
 CF2.CdA.avgTot = mean(CF2.CdA.Tot(21:length(CF2.CdA.Tot)));
 CF2.Cd.avgTot = mean(CF2.Cd.Tot(21:length(CF2.Cd.Tot)));
 
+%% Plotting 
+
+figure, hold on
+    plot(CF1.dumptime, CF1.PT1(CF1.DumpInd(1,1):CF1.DumpInd(2,1))),
+    yyaxis left, plot(CF1.dumptime, CF1.PT2(CF1.DumpInd(1,1):CF1.DumpInd(2,1))),ylabel('Pressure (psig)')
+    yyaxis right, plot(CF1.dumptime, CF1.InjCavNum),ylabel('Cavitation Number')
+    xlabel('Time (s)'); grid on, grid minor
+    title('Cold Flow 1 - Pressure and Cavitation Number vs. Time'), legend('Tank','Injector Manifold', 'Cavitation Number (injector)')
+hold off
+
+figure, hold on
+    plot(CF2.dumptime, CF2.PT1(CF2.DumpInd(1,1):CF2.DumpInd(2,1))),
+    yyaxis left, plot(CF2.dumptime, CF2.PT2(CF2.DumpInd(1,1):CF2.DumpInd(2,1))),ylabel('Pressure (psig)')
+    yyaxis right, plot(CF2.dumptime, CF2.InjCavNum),ylabel('Cavitation Number')
+    xlabel('Time (s)'); grid on, grid minor
+    title('Cold Flow 2 - Pressure and Cavitation Number vs. Time'), legend('Tank','Injector Manifold', 'Cavitation Number (injector)')
+hold off
+figure, hold on
+
+    subplot(2,1,1); hold on
+        plot(CF1.dumptime, CF1.PT1(CF1.DumpInd(1,1):CF1.DumpInd(2,1)))
+        plot(CF1.dumptime, CF1.PT2(CF1.DumpInd(1,1):CF1.DumpInd(2,1)))
+        xlabel('Time (s)'), ylabel('Pressure (psig)'), grid on, grid minor
+        title('Cold Flow 1 - Pressure vs. Time'),legend('Tank','Injector Manifold')
+    hold off
+    
+    subplot(2,1,2); hold on
+        plot(CF2.dumptime, CF2.PT1(CF2.DumpInd(1,1):CF2.DumpInd(2,1)))
+        plot(CF2.dumptime, CF2.PT2(CF2.DumpInd(1,1):CF2.DumpInd(2,1)))
+        xlabel('Time (s)'), ylabel('Pressure (psig)'),  grid on, grid minor
+        title('Cold Flow 2 - Pressure vs. Time'),legend('Tank','Injector Manifold')
+    hold off
+
+hold off
+
+
+
+%% Cleanup
+misc.n1 = n1;
+misc.n2 = n2;
+misc.ind = ind;
+clear n1 n2 ind
