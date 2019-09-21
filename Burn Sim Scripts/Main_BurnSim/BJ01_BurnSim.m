@@ -11,6 +11,7 @@
 % 2. Initial Conditions of Burn
 % 3. Simulation Options/Config
 % 4. Initialization of Simulation
+% 5 Main Sim Loop
 
 % ----------------
 % NOMENCLATURE:
@@ -37,40 +38,42 @@ addpath /N2O Properties
 Conv.PSItoPa = 6894.74; %[psi to Pa]
 Conv.LBFtoN = 4.44822; %[lbf to N]
 Conv.MtoFt = 3.28084; %[m to ft]
-Conv.MtoIN = 39.3701; %[m to in]
+Conv.MtoIn = 39.3701; %[m to in]
 Conv.KGtoLbm = 2.20462; %[kg to lbm]
 
 %% 1. Inputting Engine Geometry (NON-variable system parameters)
 
 % ------ Loss Coefficients ------ %
 % All of these are "K" values for the component/config
-loss.teeStraight = ; % loss coeff assoc. with flow through a tee going straight through
-loss.tee90 = ; % loss coeff assoc. with flow through a bent line, changing dir by 90°
-loss.bend = ; % loss coeff assoc. with flow through a bent line, changing dir by 90°
-loss.mNPTtoTube = ; % loss coeff
-loss.NOSolenoid = ; % loss coeff of N.O. solenoid used in sys
-loss.NCSolenoid = ; % loss coeff of N.C. solenoid used in sys {NOS Super Pro Shot}
+loss.teeStraight = 0; % loss coeff assoc. with flow through a tee going straight through
+loss.tee90 = 0; % loss coeff assoc. with flow through a bent line, changing dir by 90°
+loss.bend = 0; % loss coeff assoc. with flow through a bent line, changing dir by 90°
+loss.mNPTtoTube = 0; % loss coeff
+loss.NOSolenoid = 0; % loss coeff of N.O. solenoid used in sys
+loss.NCSolenoid = 0; % loss coeff of N.C. solenoid used in sys {NOS Super Pro Shot}
 
 % ------ Vent Line Geometry & Flow/Loss Coefficients ------ %
-VentLine.length1 = /Conv.MtoFT; % length of first segment of vent line (the vertical portion) [ft --> m]
-VentLine.length2 = /Conv.MtoFT; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
-VentLine.length3 = /Conv.MtoFT; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
+VentLine.DiaOutlet = 0 / Conv.MtoIn;
+VentLine.L1 = 0 / Conv.MtoFT; % length of first segment of vent line (the vertical portion) [ft --> m]
+VentLine.L2 = 0 / Conv.MtoFT; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
+VentLine.L3 = 0 / Conv.MtoFT; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
 
 % ------ Run Tank Geometry ------ %
-RT.bulk.vol = /(Conv.MtoFt^3); % total internal volume of N2O flight tank [ft^3 --> m^3]
-RT.bulk.height = /Conv.MtoFT; % total height of internal volume of RT [ft --> m]
+RT.bulk.vol = 0.751483931 /(Conv.MtoFt^3); % total internal volume of N2O flight tank [ft^3 --> m^3]
+RT.bulk.height = 3.441666667 /Conv.MtoFT; % total height of internal volume of RT [ft --> m]
 
 % ------ Injection Line Geometry & Flow/Loss Coefficients ------ %
-% InjLine.length1 = /Conv.MtoFT; % length of first segment of vent line (the vertical portion) [ft --> m]
-% InjLine.length2 = /Conv.MtoFT; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
-% InjLine.length3 = /Conv.MtoFT; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
+InjLine.length1 = 0 / Conv.MtoFT; % length of first segment of vent line (the vertical portion) [ft --> m]
+InjLine.length2 = 0 / Conv.MtoFT; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
+InjLine.length3 = 0 / Conv.MtoFT; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
 InjLine.CdA = 0.000129511324641318/(Conv.MtoFt^2); % effective discharge area of injector line [ft^2 --> m^2]
 
 % ------ Injector Geometry & Flow Coefficients ------ %
 
 
-% ------ Combustion Chamber Geometry ------ %
-Fuel.OuterR = /Conv.MtoIN; % outer radius of the fuel [in --> m]
+% ------ Fuel Properties & Geometry ------ %
+CC.fuel.OuterR = 1.5 / Conv.MtoIN; % outer radius of the fuel [in --> m]
+CC.fuel.rho = 935; %[kg/m^3] Density of HDPE
 
 % ------ Nozzle Geometry ------ %
 Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad]
@@ -81,11 +84,15 @@ Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad
 amb.alt = 152/Conv.MtoFT; % altitude above sea-level at start of burn [ft --> m]
 
 % ------ Run Tank Init Conditions ------ %
-RT.bulk.mass = /Conv.KGtoLBM; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
-RT.bulk.temperature = FtoK( ); % initial temperature of bulk N2O liquid [°F-->K]
+RT.bulk.mass = 30/Conv.KGtoLBM; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
+RT.liq.temperature = FtoK(70); % initial temperature of bulk N2O liquid [°F-->K]
 
 % ------ Fuel Init Conditions ------ %
-Fuel.InnerR = /Conv.MtoIN; % initial inner radius of solid fuel port [in --> m]
+CC.fuel.r = 0.99 / Conv.MtoIn; % initial inner radius of solid fuel port [in --> m]
+CC.fuel.L = 38.64000000 / Conv.MtoIn; % length of fuel [in --> m]
+% ballistics coeffs in rdot = a(G_ox)^n model for hybrid fuel regression rate
+CC.fuel.a = 5e-2; 
+CC.fuel.n = 0.5;
 
 % ------ Nozzle Init Conditions ------ %
 Nozzle.throat.dia = 0.966/Conv.MtoIN; % throat diameter [in-->m]
@@ -93,17 +100,25 @@ Nozzle.exit.dia = 2.171/Conv.MtoIN; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
 
-tstep = 0.1; % delta-t we use for our time-stepping simulation
+dt = 0.1; % delta-t we use for our time-stepping simulation
 flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
 
 %% 4. Initialization of Sim
 fuel = true; % creating a boolean to track if there's still fuel in rocket
-ox = true;  % creating boolean to track if there's still 
+ox = true;  % creating boolean to track if there's still oxidizer in the rocket
 i = 1; % creating iterator
 
+% initial oxidizer tank thermo
+RT.liq.rho = N2Olookup("temperature", RT.liq.temperature, 0, "density"); % looking up density of N2O liq phase [kg/m^3]
+RT.vap.rho = N2Olookup("temperature", RT.liq.temperature, 1, "density"); % looking up density of N2O vapor phase [kg/m^3]
+RT.liq.volfrac = ((RT.bulk.mass/RT.bulk.vol) - RT.vap.rho)/(RT.liq.rho - RT.vap.rho); % calculating initial volume fraction of liquid phase in RT
+RT.liq.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
+
+%% 5. Main Sim Loop
 while(fuel == true && ox == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
     
     amb.pressure(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
+    
     % Liquid state in RT
     RT.pressure(i) = N2Olookup("temperature",RT.bulk.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
     RT.rho(i) = N2Olookup("temperature",RT.bulk.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
@@ -118,7 +133,22 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
 
     % mass flow rate & flux
     CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.rho(i)*(RT.pressure(i)-CC.pressguess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
+    CC.oxflux(i) = CC.mdot.ox(i)/(2*CC.fuel.r(i)*pi*CC.fuel.L); % oxidizer mass flux in fuel port[kg/s-m^2]
     
+    % fuel regression
+    CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n); % calculating regression rate of fuel [m/s]
+    CC.mdot.fuel(i) = CC.fuel.rdot(i)*(2*CC.fuel.r(i)*pi*CC.fuel.L)*CC.fuel.rho; % calculating mass flow rate of fuel [kg/s]
+    CC.OFR(i) = CC.mdot.ox(i)/CC.mdot.fuel(i); % calculating oxidizer to fuel ratio
     
+    %     NEED A WAY TO CHECK IF WE HAVE THE PROPER CHAMBER PRESSURE
+    %     - Use a different regression formula?
+    %     - Update combustion parameters function?
+    
+    % setting up next iteration (time-marching)
+    t(i+1) = t(i) + dt;
+    CC.r(i+1) = CC.r(i) + CC.rdot(i)*dt;
+    RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*dt;
+    
+    i = i + 1;
 end
 

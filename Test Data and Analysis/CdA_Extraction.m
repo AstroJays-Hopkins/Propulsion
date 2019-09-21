@@ -2,7 +2,7 @@
 % Cd*A Extraction for Cold Flow Tests 1 & 2
 % Original Author: Dan Zanko (09/04/2019)
 clear, clc, close all
-addpath('N2O Properties')
+
 %% Setup
 % loading test data files
 load('ColdFlow1.mat')
