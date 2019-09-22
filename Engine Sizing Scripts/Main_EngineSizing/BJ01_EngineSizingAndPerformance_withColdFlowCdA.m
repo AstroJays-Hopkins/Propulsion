@@ -1,6 +1,6 @@
 %BJ-01 Hybrid Engine Development - HDPE + N2O
 %Written by Andrew Colombo & Dan Zanko
-%Updated Mar 16, 2019
+%Updated September 21,2019 by Dan Zanko
 %
 %BOTH SI & IMPERIAL UNITS
 %
