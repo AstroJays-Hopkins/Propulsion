@@ -36,14 +36,14 @@ load 'N2O_PhysicalProperties.mat'; % Loading dataset
 
 if strcmp(prop,'temperature') % checks if requesting saturation temperature
     if strcmp(input_type, 'pressure') % checks to make sure a pressure was input
-        value = interp1(Sat.pressure, Sat.Temperature, input); % gets sat temp
+        value = interp1(Sat.pressure, Sat.temperature, input); % gets sat temp
     else
         fprintf('FAILURE, to get saturation temperature the input type must be a saturation pressure')
     end
     
 elseif  strcmp(prop,'pressure') == 1 % checks if requesting saturation pressure
     if strcmp(input_type, 'temperature') % checks to make sure a temperature was input
-        value = interp1(Sat.temperature, Sat.Pressure, input); % gets sat press
+        value = interp1(Sat.temperature, Sat.pressure, input); % gets sat press
     else
         fprintf('FAILURE, to get saturation pressure the input type must be a saturation temperature')
     end

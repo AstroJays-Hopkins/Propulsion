@@ -4,7 +4,7 @@
 % Written by Dan Zanko - 09/12/2019
 % Last Updated: 09/12/2019
 
-% ----------------------
+% -----------------------
 % STRUCTURE OF SCRIPT:
 % 0. Unit conversion constants
 % 1. Inputting Engine Geometry (at start of burn)
@@ -13,7 +13,7 @@
 % 4. Initialization of Simulation
 % 5 Main Sim Loop
 
-% ----------------
+% -----------------------
 % NOMENCLATURE:
 % - "RT" = "Run Tank", the flight oxidizer tank
 % - "liq" = refers to the bulk liquid phase of N2O in the RT
@@ -21,14 +21,28 @@
 % - "CC" = "Combustion Chamber", the assembly which houses the solid fuel
 % - "amb" = ambient conditions
 % - "traj" = flight trajectory
-
-% -------------
+% -----------------------
+% -----------------------
+% OPERATION GUIDE (How to Properly Use this Script to get Engine Performance):
+%
+% - sim.flight = set this to:
+%                       - TRUE if want to simulate a simple trajectory,
+%                       - FALSE this will simply maintain initial altitude for
+%                         entire burn
+% -----------------------
+% -----------------------
+% ASSUMPTIONS:
+% - Assumes that nozzle inlet conditions equivalent to stagnation
+% conditions of combustion chamber
+% -----------------------
+% -----------------------
 % NOTES:
 % - Solid fuel configuration is that of a single, axially aligned
 %   cylindrical port
 % - Nozzle is conical
+% -----------------------
 
-
+%% Seting Up Workspace
 clear, clc, close all
 % addpath F:/Propulsion/BJ-01 Motor Sims/Burn Sim Scripts
 % addpath F:/Propulsion/BJ-01 Motor Sims/functions
@@ -77,8 +91,11 @@ CC.fuel.rho = 935; %[kg/m^3] Density of HDPE
 
 % ------ Nozzle Geometry ------ %
 Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad]
+Nozzle.ConicalConvergingKnockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
+Nozzle.ConicalDivergingKnockdown = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 
-%% 2. Initial Conditions (& those that are engineer variable)
+
+%% 2. Initial Conditions & Simulation Correlating Parameters
 
 % ------ Ambient Init Conditions ------ %
 amb.alt = 152/Conv.MtoFt; % altitude above sea-level at start of burn [ft --> m]
@@ -87,32 +104,44 @@ amb.alt = 152/Conv.MtoFt; % altitude above sea-level at start of burn [ft --> m]
 RT.bulk.mass = 30/Conv.KGtoLbm; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
 RT.liq.temperature = FtoK(70); % initial temperature of bulk N2O liquid [°F-->K]
 
-% ------ Fuel Init Conditions ------ %
+% ------ Fuel & Comb Chamber Init Conditions & Efficiencies ------ %
 CC.fuel.r = 0.99 / Conv.MtoIn; % initial inner radius of solid fuel port [in --> m]
 CC.fuel.L = 38.64000000 / Conv.MtoIn; % length of fuel [in --> m]
+CC.cstarEfficiency = 1;
 % ballistics coeffs in rdot = a(G_ox)^n model for hybrid fuel regression rate
 CC.fuel.a = 5e-2; 
 CC.fuel.n = 0.5;
 
-% ------ Nozzle Init Conditions ------ %
+% ------ Nozzle Init Conditions & Efficiencies ------ %
 Nozzle.throat.dia = 0.966/Conv.MtoIn; % throat diameter [in-->m]
 Nozzle.exit.dia = 2.171/Conv.MtoIn; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
 
-dt = 0.1; % delta-t we use for our time-stepping simulation
-flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+sim.dt = 0.1; % delta-t we use for our time-stepping simulation
+sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+sim.P0tolerance = 1; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
+sim.P0change = 0.001; % if P0guess and P0 calculated deviate from each other greater than the tolerance, this value gets new guess by multiplying old guess by 1 +/- this values
 
 %% 4. Initialization of Sim
 fuel = true; % creating a boolean to track if there's still fuel in rocket
 ox = true;  % creating boolean to track if there's still oxidizer in the rocket
 i = 1; % creating iterator
+t = 0; % creating time variable (s)
+
+% calculating mass of loaded fuel
+CC.fuel.mass = (pi/4)*(CC.fuel.OuterR^2 - CC.fuel.r^2)*CC.fuel.L*CC.fuel.rho;
+
+% calculating areas given input diameters
+Nozzle.throat.area = pi*(Nozzle.throat.dia^2)/4; % calculating nozzle throat area [m^2]
 
 % initial oxidizer tank thermo
 RT.liq.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "density"); % looking up density of N2O liq phase [kg/m^3]
 RT.vap.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 1, "density"); % looking up density of N2O vapor phase [kg/m^3]
 RT.liq.volfrac = ((RT.bulk.mass/RT.bulk.vol) - RT.vap.rho)/(RT.liq.rho - RT.vap.rho); % calculating initial volume fraction of liquid phase in RT
-RT.liq.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
+RT.vap.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
+RT.liq.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of liquid phase of oxidizer [kg]
+RT.vap.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of vapor phase of oxidizer [kg]
 
 %% 5. Main Sim Loop
 while(fuel == true && ox == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
@@ -120,36 +149,79 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     amb.pressure(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
     
     % Liquid state in RT
-    RT.pressure(i) = N2Olookup("temperature",RT.bulk.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
-    RT.rho(i) = N2Olookup("temperature",RT.bulk.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
+    RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
+    RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
     
     % chamber pressure guess
     if i == 1
-        CC.pressguess(i) = 400*Conv.PSItoPa; % initial chamber pressure guess of 400 psi [psi-->Pa]
+        CC.P0guess(i) = 400*Conv.PSItoPa; % initial chamber pressure guess of 400 psi [psi-->Pa]
     else
-        CC.pressguess(i) = CC.P0(i-1);
-
+        CC.P0guess(i) = CC.P0(i-1);
     end
+    
+    % converging upon a chamber pressure
+    ii = 0;
+    sim.P0converge = false;
+    while sim.P0converge == 0
+        % mass flow rate & flux
+        CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
+        CC.oxflux(i) = CC.mdot.ox(i)/(2*CC.fuel.r(i)*pi*CC.fuel.L); % oxidizer mass flux in fuel port[kg/s-m^2]
 
-    % mass flow rate & flux
-    CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.rho(i)*(RT.pressure(i)-CC.pressguess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
-    CC.oxflux(i) = CC.mdot.ox(i)/(2*CC.fuel.r(i)*pi*CC.fuel.L); % oxidizer mass flux in fuel port[kg/s-m^2]
-    
-    % fuel regression & fuel flow rate + resulting Ox/Fuel Ratio (OFR)
-    CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n); % calculating regression rate of fuel [m/s]
-    CC.mdot.fuel(i) = CC.fuel.rdot(i)*(2*CC.fuel.r(i)*pi*CC.fuel.L)*CC.fuel.rho; % calculating mass flow rate of fuel [kg/s]
-    CC.OFR(i) = CC.mdot.ox(i)/CC.mdot.fuel(i); % calculating oxidizer to fuel ratio
-    
-    % interpolating ProPep3 outputs with current chamber pressure guess and
-    % OFR to get properties of combustion products (stag temp, gamma,
-    % material specific ideal gas const)
-    [CC.T0(i), CC.gamma(i), CC.R(i)] = combustionParameters(CC.OFR(i), CC.pressguess(i));
-    
-    
+        % fuel regression & fuel flow rate + resulting Ox/Fuel Ratio (OFR)
+        CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n); % calculating regression rate of fuel [m/s]
+        CC.mdot.fuel(i) = CC.fuel.rdot(i)*(2*CC.fuel.r(i)*pi*CC.fuel.L)*CC.fuel.rho; % calculating mass flow rate of fuel [kg/s]
+        CC.mdot.total(i) = CC.mdot.ox(i) + CC.mdot.fuel(i);
+        CC.OFR(i) = CC.mdot.ox(i)/CC.mdot.fuel(i); % calculating oxidizer to fuel ratio
+
+        % interpolating ProPep3 outputs with current chamber pressure guess and
+        % OFR to get properties of combustion products (stag temp, gamma,
+        % material specific ideal gas const)
+        [CC.T0(i), CC.gamma(i), CC.R(i)] = combustionParameters(CC.OFR(i), CC.P0guess(i));
+        CC.char_vel(i) = (CC.cstarEfficiency/CC.gamma(i))*sqrt( (CC.gamma(i)*CC.R(i)*CC.T0(i)) / ( (2/(CC.gamma(i)+1)) ^ ((CC.gamma(i)+1)/(CC.gamma(i)-1)) ) ); % calculating characteristic velocity of exhaust
+        CC.P0(i) = CC.mdot.total(i) * CC.char_vel(i) / Nozzle.throat.area(length(Nozzle.throat.area)); % calculating the chamber pressure according to nozzle theory [Pa]
+        
+        % checking if calculated chamber pressure matches our current guess
+        % for chamber pressure
+        sim.P0discrepency(i) = CC.P0(i) - CC.P0guess(i);
+        if t(i) < 0.5 % enforcing P0 to remain a reasonable value on startup (prevents P0 to converge to a value >> P_tank) 
+            CC.P0(i) = CC.P0guess(i);
+            sim.P0converge = true;
+        elseif (sim.P0discrepency(i)) < -sim.P0tolerance
+            CC.P0guess(i) = CC.P0guess(i)*(1 + sim.P0change);
+            ii = ii+1;
+        elseif (sim.P0discrepency(i)) > sim.P0tolerance
+            CC.P0guess(i) = CC.P0guess(i)*(1 - sim.P0change);
+            ii = ii+1;
+        else
+            sim.P0converge = true; % signalling that we have converged on chamber pressure and that we can procede with the sim for this timestep
+        end
+
+    end 
+
+
+    % calculating conditions at throat (choked)
+    mdot_choked_book(i) = Nozzle.throat.area*CC.P0(i)*CC.gamma(i)*sqrt( (2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1))) / sqrt(CC.gamma(i)*CC.R(i)*CC.T0(i));
+    mdot_choked_NASA(i) = (Nozzle.throat.area*CC.P0(i)/sqrt(CC.T0(i)))*sqrt(CC.T0(i)/CC.R(i))*(((CC.gamma(i)+1)/2)^((-1)*(CC.gamma(i)+1)/(2*(CC.gamma(i)-1))));
+    mdot_choked_katz(i) = (Nozzle.throat.area)*sqrt( (CC.gamma(i)/(CC.R(i)*CC.T0(i))) * ((2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1)) ) );
+    % calculating conditions at exhaust
+
+    % calculating resulting thrust 
+
     % setting up next iteration (time-marching)
-    t(i+1) = t(i) + dt;
-    CC.r(i+1) = CC.r(i) + CC.rdot(i)*dt;
-    RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*dt;
+    t(i+1) = t(i) + sim.dt;
+    CC.fuel.r(i+1) = CC.fuel.r(i) + CC.fuel.rdot(i)*sim.dt;
+    RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*sim.dt;
+    CC.fuel.mass(i+1) = CC.fuel.mass(i) - CC.mdot.fuel(i)*sim.dt;
+    
+    % checking if either of the propellant masses in the next time step is
+    % negative, signaling to end the simulation of the burn if this
+    % condition is met
+    if RT.liq.mass(i+1) <= 0
+        sim.ox = false;
+    end
+    if CC.fuel.mass(i+1) <= 0
+        sim.fuel = false;
+    end
     
     i = i + 1;
 end
