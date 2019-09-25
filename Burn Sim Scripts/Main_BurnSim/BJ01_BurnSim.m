@@ -120,7 +120,7 @@ Nozzle.exit.dia = 2.171/Conv.MtoIn; % exit diameter [in-->m]
 
 sim.dt = 0.1; % delta-t we use for our time-stepping simulation
 sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
-sim.P0tolerance = 1; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
+sim.P0tolerance = 100; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
 sim.P0change = 0.001; % if P0guess and P0 calculated deviate from each other greater than the tolerance, this value gets new guess by multiplying old guess by 1 +/- this values
 
 %% 4. Initialization of Sim
@@ -201,8 +201,6 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
 
     % calculating conditions at throat (choked)
     mdot_choked_book(i) = Nozzle.throat.area*CC.P0(i)*CC.gamma(i)*sqrt( (2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1))) / sqrt(CC.gamma(i)*CC.R(i)*CC.T0(i));
-    mdot_choked_NASA(i) = (Nozzle.throat.area*CC.P0(i)/sqrt(CC.T0(i)))*sqrt(CC.T0(i)/CC.R(i))*(((CC.gamma(i)+1)/2)^((-1)*(CC.gamma(i)+1)/(2*(CC.gamma(i)-1))));
-    mdot_choked_katz(i) = (Nozzle.throat.area)*sqrt( (CC.gamma(i)/(CC.R(i)*CC.T0(i))) * ((2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1)) ) );
     % calculating conditions at exhaust
 
     % calculating resulting thrust 

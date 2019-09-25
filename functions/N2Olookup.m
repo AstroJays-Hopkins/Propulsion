@@ -32,7 +32,7 @@ function [value] = N2Olookup(input_type,input,quality,prop)
             % 'SurfTen'     = Surface tension coefficient [N/m]
 
 %% -------- MAIN CODE -------- %%.
-load 'N2O_PhysicalProperties.mat'; % Loading dataset
+load 'N2O_SatProperties.mat'; % Loading dataset
 
 if strcmp(prop,'temperature') % checks if requesting saturation temperature
     if strcmp(input_type, 'pressure') % checks to make sure a pressure was input
