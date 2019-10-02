@@ -210,6 +210,7 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     % calculating conditions at throat (choked)
     mdot_choked_book(i) = Nozzle.throat.area*CC.P0(i)*CC.gamma(i)*sqrt( (2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1))) / sqrt(CC.gamma(i)*CC.R(i)*CC.T0(i));
     
+    
     % calculating conditions at exhaust
 
     
