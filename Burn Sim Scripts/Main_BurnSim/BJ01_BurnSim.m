@@ -94,7 +94,6 @@ Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad
 Nozzle.ConicalConvergingKnockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 Nozzle.ConicalDivergingKnockdown = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 
-
 %% 2. Initial Conditions & Simulation Correlating Parameters
 
 % ------ Ambient Init Conditions ------ %
@@ -109,7 +108,7 @@ CC.fuel.r = 0.99 / Conv.MtoIn; % initial inner radius of solid fuel port [in -->
 CC.fuel.L = 38.64000000 / Conv.MtoIn; % length of fuel [in --> m]
 CC.cstarEfficiency = 1;
 % ballistics coeffs in rdot = a(G_ox)^n model for hybrid fuel regression rate
-CC.fuel.a = 5e-2; 
+CC.fuel.a = 5e-5; 
 CC.fuel.n = 0.5;
 
 % ------ Nozzle Init Conditions & Efficiencies ------ %
@@ -148,9 +147,10 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     
     amb.pressure(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
     
-    % Liquid state in RT
+    % state in RT
     RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
     RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
+    RT.vap.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,1,"density"); % assuming saturated liquid, getting density [kg/m^3]
     
     % chamber pressure guess
     if i == 1
@@ -165,7 +165,7 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     while sim.P0converge == 0
         % mass flow rate & flux
         CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
-        CC.oxflux(i) = CC.mdot.ox(i)/(2*CC.fuel.r(i)*pi*CC.fuel.L); % oxidizer mass flux in fuel port[kg/s-m^2]
+        CC.oxflux(i) = CC.mdot.ox(i)/(pi*(CC.fuel.r(i)^2)); % oxidizer mass flux in fuel port[kg/s-m^2]
 
         % fuel regression & fuel flow rate + resulting Ox/Fuel Ratio (OFR)
         CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n); % calculating regression rate of fuel [m/s]
@@ -186,7 +186,7 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
         if t(i) < 0.5 % enforcing P0 to remain a reasonable value on startup (prevents P0 to converge to a value >> P_tank) 
             CC.P0(i) = CC.P0guess(i);
             CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) );
-            CC.oxflux(i) = CC.mdot.ox(i)/(2*CC.fuel.r(i)*pi*CC.fuel.L);
+            CC.oxflux(i) = CC.mdot.ox(i)/(pi*(CC.fuel.r(i)^2));
             CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n);
             CC.mdot.fuel(i) = CC.fuel.rdot(i)*(2*CC.fuel.r(i)*pi*CC.fuel.L)*CC.fuel.rho; % calculating mass flow rate of fuel [kg/s]
             CC.mdot.total(i) = CC.mdot.ox(i) + CC.mdot.fuel(i);
@@ -220,7 +220,7 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     
     % setting up next iteration (time-marching)
     t(i+1) = t(i) + sim.dt;
-    CC.fuel.r(i+1) = CC.fuel.r(i) + CC.fuel.rdot(i)*sim.dt;
+    CC.fuel.r(i+1) = CC.fuel.r(i) - CC.fuel.rdot(i)*sim.dt;
     RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*sim.dt;
     CC.fuel.mass(i+1) = CC.fuel.mass(i) - CC.mdot.fuel(i)*sim.dt;
     
