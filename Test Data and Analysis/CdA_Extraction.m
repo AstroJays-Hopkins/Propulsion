@@ -16,6 +16,7 @@ D_hole = 0.067; % diameter of each orifice hole [in]
 A_hole = pi*(D_hole^2)/4; % calculating discharge area of a single orifice [in^2]
 A_inj = n_holes*A_hole/144; % total injector area (as designed) [in^2 --> ft^2]
 
+
 %% Cold Flow 1
 CF1.mdotsmthd = smooth(CF1.mdot);
 
@@ -26,7 +27,7 @@ CF1.dumpmdotsmthd = smooth(CF1.dumpmdot);
 for n1 = CF1.DumpInd(1,1):CF1.DumpInd(2,1)
     ind = n1 - CF1.DumpInd(1) + 1;
     
-    CF1.rho(ind,1) = N2Olookup("pressure",CF1.PT1(n1)*6.89476,0,'density')*0.00194032; % looks up density via PT1 and assuming Q = 0 and converting to US [slug/ft^3]
+    CF1.rho(ind,1) = N2Olookup("pressure",CF1.PT1(n1)*6.89476,0,'density')*0.00194032; % looks up density via PT1 and assuming Q = 0 and converting to US [kg/m^ --> slug/ft^3]
     CF1.Q(ind,1) = -(CF1.mdotsmthd(n1)*0.031081)/CF1.rho(ind,1);
     
     CF1.deltaP.Inj(ind,1) = (CF1.PT2(n1)); % gauge pressure (inj. - atm) [psig]
@@ -38,17 +39,20 @@ for n1 = CF1.DumpInd(1,1):CF1.DumpInd(2,1)
     CF1.deltaP.Tot(ind,1) = (CF1.PT1(n1)); % gauge pressure (tank - atm) [psig]
     CF1.CdA.Tot(ind,1) = abs((CF1.mdotsmthd(ind)*0.031081)/sqrt(abs(2*CF1.rho(ind,1)*CF1.deltaP.Tot(ind,1)*144))); % calculating Cd*A (mdot is converted from lbm/s to slug/s) (deltaP is converted from psig to psfg)
     CF1.Cd.Tot(ind,1) = CF1.CdA.Tot(ind,1)/A_inj;
-        
+
     CF1.deltaP.PTs(ind,1) = (CF1.PT1(n1)-CF1.PT2(n1)); % gauge pressure (tank - atm) [psig]
 end
 
-CF1.AVGmdot = mean(smooth(CF1.dumpmdotsmthd));
+CF1.AVGmdot = -CF1.mass(CF1.DumpInd(1))/CF1.dumptime(length(CF1.dumptime));
+CF1.CdA.overall = (CF1.AVGmdot/32.2)/sqrt(2*mean(CF1.rho)*mean(CF1.PT1));
+CF1.Cd.overall = CF1.CdA.overall/A_inj;
 
 CF1.CdA.avgInj = mean(CF1.CdA.Inj(21:length(CF1.CdA.Inj)));
 CF1.Cd.avgInj = mean(CF1.Cd.Inj(21:length(CF1.Cd.Inj)));
 
 CF1.CdA.avgTot = mean(CF1.CdA.Tot(21:length(CF1.CdA.Tot)));
 CF1.Cd.avgTot = mean(CF1.Cd.Tot(21:length(CF1.Cd.Tot)));
+
 
 %% Cold Flow 2
 CF2.mdotsmthd = smooth(CF2.mdot);
@@ -75,7 +79,9 @@ for n2 = CF2.DumpInd(1,1):CF2.DumpInd(2,1)
     CF2.deltaP.PTs(ind,1) = (CF2.PT1(n2)-CF2.PT2(n2)); % gauge pressure (tank - atm) [psig]
 end
 
-CF2.AVGmdot = mean(CF2.dumpmdotsmthd);
+CF2.AVGmdot = -CF2.mass(CF2.DumpInd(1))/CF2.dumptime(length(CF2.dumptime));
+CF2.CdA.overall = (CF2.AVGmdot/32.2)/sqrt(2*mean(CF2.rho)*mean(CF2.PT1));
+CF2.Cd.overall = CF2.CdA.overall/A_inj;
 
 CF2.CdA.avgInj = mean(CF2.CdA.Inj(21:length(CF2.CdA.Inj)));
 CF2.Cd.avgInj = mean(CF2.Cd.Inj(21:length(CF2.Cd.Inj)));
@@ -120,7 +126,13 @@ hold off
 
 %% mdot vs time plots
 figure, hold on
-    
+    plot(CF1.dumptime, CF1.dumpmdot)
+    plot(CF1.dumptime, CF1.dumpmdotsmthd)
+    plot(CF1.dumptime, CF1.AVGmdot*ones(length(CF1.dumptime),1))
+    xlabel('Time (s)'), ylabel('Mass Flow Rate (lbm/s)'),  grid on, grid minor
+    legend('Raw','Smoothed','Overall Average')
+hold off
+
 
 %% CdA vs. DeltaP Plots
 figure, hold on
