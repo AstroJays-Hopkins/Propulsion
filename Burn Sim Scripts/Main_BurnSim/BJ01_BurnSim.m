@@ -133,7 +133,10 @@ CC.fuel.mass = (pi/4)*(CC.fuel.OuterR^2 - CC.fuel.r^2)*CC.fuel.L*CC.fuel.rho;
 
 % calculating areas given input diameters
 Nozzle.throat.area = pi*(Nozzle.throat.dia^2)/4; % calculating nozzle throat area [m^2]
-
+Nozzle.exit.area = pi*(Nozzle.exit.dia^2)/4; % calculating nozzle exit area [m^2]
+Nozzle.ER = Nozzle.exit.area/Nozzle.throat.area; % calculating nozzle expansion ratio
+syms PeP0
+    
 % initial oxidizer tank thermo
 RT.liq.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "density"); % looking up density of N2O liq phase [kg/m^3]
 RT.vap.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 1, "density"); % looking up density of N2O vapor phase [kg/m^3]
@@ -183,49 +186,39 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
         % checking if calculated chamber pressure matches our current guess
         % for chamber pressure
         sim.P0discrepency(i) = CC.P0(i) - CC.P0guess(i);
-        if t(i) < 0.5 % enforcing P0 to remain a reasonable value on startup (prevents P0 to converge to a value >> P_tank) 
-            CC.P0(i) = CC.P0guess(i);
-            CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) );
-            CC.oxflux(i) = CC.mdot.ox(i)/(pi*(CC.fuel.r(i)^2));
-            CC.fuel.rdot(i) = CC.fuel.a*(CC.oxflux(i)^CC.fuel.n);
-            CC.mdot.fuel(i) = CC.fuel.rdot(i)*(2*CC.fuel.r(i)*pi*CC.fuel.L)*CC.fuel.rho; % calculating mass flow rate of fuel [kg/s]
-            CC.mdot.total(i) = CC.mdot.ox(i) + CC.mdot.fuel(i);
-            CC.OFR(i) = CC.mdot.ox(i)/CC.mdot.fuel(i); % calculating oxidizer to fuel ratio
-            [CC.T0(i), CC.gamma(i), CC.R(i)] = combustionParameters(CC.OFR(i), CC.P0guess(i));
-            CC.char_vel(i) = (CC.cstarEfficiency/CC.gamma(i))*sqrt( (CC.gamma(i)*CC.R(i)*CC.T0(i)) / ( (2/(CC.gamma(i)+1)) ^ ((CC.gamma(i)+1)/(CC.gamma(i)-1)) ) ); % calculating characteristic velocity of exhaust
-            sim.P0converge = true;
-        elseif (sim.P0discrepency(i)) < -sim.P0tolerance
-            CC.P0guess(i) = CC.P0guess(i)*(1 + sim.P0change);
-            ii = ii+1;
-        elseif (sim.P0discrepency(i)) > sim.P0tolerance
+        if (sim.P0discrepency(i)) < -sim.P0tolerance
             CC.P0guess(i) = CC.P0guess(i)*(1 - sim.P0change);
             ii = ii+1;
+        elseif (sim.P0discrepency(i)) > sim.P0tolerance
+            CC.P0guess(i) = CC.P0guess(i)*(1 + sim.P0change);
+            ii = ii+1;
         else
+            % calculating conditions at throat (choked)
+            CC.mdot.choked(i) = Nozzle.throat.area*CC.P0(i)*CC.gamma(i)*sqrt( (2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1))) / sqrt(CC.gamma(i)*CC.R(i)*CC.T0(i));
+            CC.mdot.chokedcheck(i) = CC.mdot.total(i) - CC.mdot.choked(i);
             sim.P0converge = true; % signalling that we have converged on chamber pressure and that we can procede with the sim for this timestep
         end
 
-    end 
-
-
-    % calculating conditions at throat (choked)
-    mdot_choked_book(i) = Nozzle.throat.area*CC.P0(i)*CC.gamma(i)*sqrt( (2/(CC.gamma(i)+1))^((CC.gamma(i)+1)/(CC.gamma(i)-1))) / sqrt(CC.gamma(i)*CC.R(i)*CC.T0(i));
+    end
     
+    % Nozzle Throat Conditions
+    Nozzle.throat.T(i) = CC.T0(i)*(1+(CC.gamma(i)-1)/2)^-1;
+    Nozzle.throat.P(i) = CC.P0(i)*(Nozzle.throat.T(i)/CC.T0(i))^(CC.gamma(i)/(CC.gamma(i)-1));
+    Nozzle.throat.c(i) = sqrt(CC.gamma(i)*CC.R(i)*Nozzle.throat.T(i)); %speed of sound at throat
+    Nozzle.throat.u(i) = Nozzle.throat.c(i); % M=1 at throat
     
-    % calculating conditions at exhaust
-
-    
-    % calculating resulting thrust 
-
-    
+    % Nozzle Exhaust Conditions
+    PrFnNum = (2/(CC.gamma(i)+1))^(1/(CC.gamma(i)-1));
+    PrFnDenom1 = PeP0^(1/CC.gamma(i));
+    PrFnDenom2 = sqrt(((CC.gamma(i)+1)/(CC.gamma(i)-1))*(1 - PeP0^((CC.gamma(i)-1)/CC.gamma(i))));
+    PrFn = (Nozzle.ER == PrFnNum / (PrFnDenom1*PrFnDenom2));
+    Nozzle.exit.P(i) = eval(vpasolve(PrFn,PeP0))*CC.P0(i);
     
     % setting up next iteration (time-marching)
     t(i+1) = t(i) + sim.dt;
     CC.fuel.r(i+1) = CC.fuel.r(i) - CC.fuel.rdot(i)*sim.dt;
     RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*sim.dt;
     CC.fuel.mass(i+1) = CC.fuel.mass(i) - CC.mdot.fuel(i)*sim.dt;
-    
-    
-    amb
     
     % checking if either of the propellant masses in the next time step is
     % negative, signaling to end the simulation of the burn if this
