@@ -6,12 +6,13 @@
 
 % -----------------------
 % STRUCTURE OF SCRIPT:
+% 00. Setting up Workspace
 % 0. Unit conversion constants
-% 1. Inputting Engine Geometry (at start of burn)
-% 2. Initial Conditions of Burn
+% 1. Inputting Engine Geometry & NON-VARIABLE system parameters
+% 2. Initial Conditions & Simulation Correlating Parameters
 % 3. Simulation Options/Config
 % 4. Initialization of Simulation
-% 5 Main Sim Loop
+% 5. Main Sim Loop
 
 % -----------------------
 % NOMENCLATURE:
@@ -42,7 +43,7 @@
 % - Nozzle is conical
 % -----------------------
 
-%% Seting Up Workspace
+%% 00. Seting Up Workspace
 clear, clc, close all
 % addpath F:/Propulsion/BJ-01 Motor Sims/Burn Sim Scripts
 % addpath F:/Propulsion/BJ-01 Motor Sims/functions
@@ -55,7 +56,7 @@ Conv.MtoFt = 3.28084; %[m to ft]
 Conv.MtoIn = 39.3701; %[m to in]
 Conv.KGtoLbm = 2.20462; %[kg to lbm]
 
-%% 1. Inputting Engine Geometry (NON-variable system parameters)
+%% 1. Inputting Engine Geometry & NON-VARIABLE system parameters
 
 % ------ Loss Coefficients ------ %
 % All of these are "K" values for the component/config
@@ -94,10 +95,18 @@ Nozzle.DivAngle = deg2rad(15); % half angle of divergence of conical nozzle [rad
 Nozzle.ConicalConvergingKnockdown = 0.99; %reduction in thrust due to losses in converging section of nozzle
 Nozzle.ConicalDivergingKnockdown = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 
+% ------ Universal Constants & Atmospheric Properties ------ %
+amb.g = 9.80665; % standard gravitational acceleration [m/s^2]
+amb.R = 287.05; % ideal gas constant for air [J/kg-K]
+amb.gamma = 1.41; % rough value for Cp,p/Cp,v for dry air
+amb.area = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
+
+
 %% 2. Initial Conditions & Simulation Correlating Parameters
 
 % ------ Ambient Init Conditions ------ %
 amb.alt = 152/Conv.MtoFt; % altitude above sea-level at start of burn [ft --> m]
+amb.temp = FtoK(75); % ambient temperature [ºF --> K]
 
 % ------ Run Tank Init Conditions ------ %
 RT.bulk.mass = 30/Conv.KGtoLbm; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
@@ -116,7 +125,6 @@ Nozzle.throat.dia = 0.966/Conv.MtoIn; % throat diameter [in-->m]
 Nozzle.exit.dia = 2.171/Conv.MtoIn; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
-
 sim.dt = 0.1; % delta-t we use for our time-stepping simulation
 sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
 sim.P0tolerance = 100; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
@@ -148,7 +156,7 @@ RT.vap.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of vapor phase of ox
 %% 5. Main Sim Loop
 while(fuel == true && ox == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
     
-    amb.pressure(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
+    amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
     
     % state in RT
     RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
@@ -208,17 +216,40 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     Nozzle.throat.u(i) = Nozzle.throat.c(i); % M=1 at throat
     
     % Nozzle Exhaust Conditions
-    PrFnNum = (2/(CC.gamma(i)+1))^(1/(CC.gamma(i)-1));
+    PrFnNumer = (2/(CC.gamma(i)+1))^(1/(CC.gamma(i)-1));
     PrFnDenom1 = PeP0^(1/CC.gamma(i));
     PrFnDenom2 = sqrt(((CC.gamma(i)+1)/(CC.gamma(i)-1))*(1 - PeP0^((CC.gamma(i)-1)/CC.gamma(i))));
-    PrFn = (Nozzle.ER == PrFnNum / (PrFnDenom1*PrFnDenom2));
+    PrFn = (Nozzle.ER == PrFnNumer / (PrFnDenom1*PrFnDenom2));
     Nozzle.exit.P(i) = eval(vpasolve(PrFn,PeP0))*CC.P0(i);
+    Nozzle.exit.T(i) = CC.T0(i) / ((CC.P0(i)/Nozzle.exit.P(i))^((CC.gamma(i)-1)/CC.gamma(i))); % calculating temperature at nozzle exit [K]
+    Nozzle.exit.u(i) = sqrt(((2*CC.gamma(i))/(CC.gamma(i)-1))*CC.R(i)*CC.T0(i)*(1-((Nozzle.exit.P(i)/CC.P0(i))^((CC.gamma(i)-1)/CC.gamma(i))))); % calculating nozzle exit velocity [m/s]
+    Nozzle.exit.M(i) = sqrt((2/(CC.gamma(i)-1))*((CC.T0(i)/Nozzle.exit.T(i))-1)); % calculating mach number at nozzle exit
+    
+    % calculating thrust
+    F.thrust_momentum(i) = (CC.mdot.total(i) * Nozzle.exit.u(i))*(Nozzle.ConicalConvergingKnockdown*Nozzle.ConicalDivergingKnockdown); % momentum term of the engine's thrust [N]
+    F.thrust_pressure(i) = (Nozzle.exit.P(i) - amb.P(i)) * Nozzle.exit.area; %Calculate thrust
+    F.thrust(i) = F.thrust_momentum(i) + F.thrust_pressure(i); % total thrust produced by the engine [N]
     
     % setting up next iteration (time-marching)
     t(i+1) = t(i) + sim.dt;
     CC.fuel.r(i+1) = CC.fuel.r(i) - CC.fuel.rdot(i)*sim.dt;
     RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*sim.dt;
     CC.fuel.mass(i+1) = CC.fuel.mass(i) - CC.mdot.fuel(i)*sim.dt;
+    
+    
+    if sim.flight == true
+        amb.rho(i) = densitylookup_SI(amb.alt(i)); % getting freestream density [kg/m^3]
+        amb.T(i) = amb.P(i)/(amb.rho(i)*amb.R); % calculating ambient temperature via ideal gas for dry air [K]
+        amb.Ma(i) = amb.vel(i)/sqrt(amb.gamma(i)*amb.R*amb.T(i)); % calculating current Mach number
+        amb.Cdrag(i) = CDcurve(amb.Ma(i)); % getting current drag coefficient
+        F.drag = (1/2)*amb.Cdrag(i)*amb.area*amb.rho*(amb.vel(i)^2); % calculating drag force [N]
+        F.weight(i) = rocket.mass(i)*amb.g; % calculating weight [N]
+        amb.accel(i) = (F.thrust(i) - F.drag(i) - F.weight(i))/rocket.mass(i);
+        amb.vel(i+1) = amb.vel(i) + amb.accel(i)*sim.dt;
+        amb.alt(i+1) =  t(i) + amb.vel(i+1)*sim.dt;
+    else
+        amb.alt(i+1) = amb.alt(i);
+    end
     
     % checking if either of the propellant masses in the next time step is
     % negative, signaling to end the simulation of the burn if this
