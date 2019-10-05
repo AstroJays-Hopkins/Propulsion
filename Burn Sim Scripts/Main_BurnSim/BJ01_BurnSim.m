@@ -101,7 +101,6 @@ amb.R = 287.05; % ideal gas constant for air [J/kg-K]
 amb.gamma = 1.41; % rough value for Cp,p/Cp,v for dry air
 amb.area = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
 
-
 %% 2. Initial Conditions & Simulation Correlating Parameters
 
 % ------ Ambient Init Conditions ------ %
@@ -125,14 +124,18 @@ Nozzle.throat.dia = 0.966/Conv.MtoIn; % throat diameter [in-->m]
 Nozzle.exit.dia = 2.171/Conv.MtoIn; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
-sim.dt = 0.1; % delta-t we use for our time-stepping simulation
 sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+sim.perfplot = true;
+
+sim.dt = 0.1; % delta-t we use for our time-stepping simulation
+
 sim.P0tolerance = 100; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
 sim.P0change = 0.001; % if P0guess and P0 calculated deviate from each other greater than the tolerance, this value gets new guess by multiplying old guess by 1 +/- this values
 
 %% 4. Initialization of Sim
-fuel = true; % creating a boolean to track if there's still fuel in rocket
-ox = true;  % creating boolean to track if there's still oxidizer in the rocket
+sim.fuel = true; % creating a boolean to track if there's still fuel in rocket
+sim.ox = true;  % creating boolean to track if there's still oxidizer in the rocket
+sim.propellant = true; 
 i = 1; % creating iterator
 t = 0; % creating time variable (s)
 
@@ -154,7 +157,7 @@ RT.liq.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of liquid phase of o
 RT.vap.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of vapor phase of oxidizer [kg]
 
 %% 5. Main Sim Loop
-while(fuel == true && ox == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
+while(sim.propellant == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
     
     amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
     
@@ -256,9 +259,11 @@ while(fuel == true && ox == true) % simulation runs as long as there's both fuel
     % condition is met
     if RT.liq.mass(i+1) <= 0
         sim.ox = false;
+        sim.propellant = false;
     end
     if CC.fuel.mass(i+1) <= 0
         sim.fuel = false;
+        sim.propellant = false;
     end
     
     i = i + 1;
