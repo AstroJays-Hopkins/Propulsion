@@ -58,6 +58,9 @@ Conv.KGtoLbm = 2.20462; %[kg to lbm]
 
 %% 1. Inputting Engine Geometry & NON-VARIABLE system parameters
 
+% ------ Vehicle Props ------ %
+Rocket.mass.dry = 30;
+
 % ------ Loss Coefficients ------ %
 % All of these are "K" values for the component/config
 loss.teeStraight = 0; % loss coeff assoc. with flow through a tee going straight through
@@ -105,6 +108,7 @@ amb.area = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
 
 % ------ Ambient Init Conditions ------ %
 amb.alt = 152/Conv.MtoFt; % altitude above sea-level at start of burn [ft --> m]
+amb.vel = 0; % zero inital velocity
 amb.temp = FtoK(75); % ambient temperature [ºF --> K]
 
 % ------ Run Tank Init Conditions ------ %
@@ -127,7 +131,7 @@ Nozzle.exit.dia = 2.171/Conv.MtoIn; % exit diameter [in-->m]
 sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
 sim.perfplot = true;
 
-sim.dt = 0.1; % delta-t we use for our time-stepping simulation
+sim.dt = 0.025; % delta-t we use for our time-stepping simulation
 
 sim.P0tolerance = 100; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
 sim.P0change = 0.001; % if P0guess and P0 calculated deviate from each other greater than the tolerance, this value gets new guess by multiplying old guess by 1 +/- this values
@@ -155,6 +159,9 @@ RT.liq.volfrac = ((RT.bulk.mass/RT.bulk.vol) - RT.vap.rho)/(RT.liq.rho - RT.vap.
 RT.vap.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
 RT.liq.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of liquid phase of oxidizer [kg]
 RT.vap.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of vapor phase of oxidizer [kg]
+
+% calculating vehicle mass
+Rocket.mass.total = RT.bulk.mass + CC.fuel.mass + Rocket.mass.dry;
 
 %% 5. Main Sim Loop
 while(sim.propellant == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
@@ -238,18 +245,18 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     CC.fuel.r(i+1) = CC.fuel.r(i) - CC.fuel.rdot(i)*sim.dt;
     RT.liq.mass(i+1) = RT.liq.mass(i) - CC.mdot.ox(i)*sim.dt;
     CC.fuel.mass(i+1) = CC.fuel.mass(i) - CC.mdot.fuel(i)*sim.dt;
-    
+    Rocket.mass.total(i+1) = RT.liq.mass(i+1) + CC.fuel.mass(i+1) + Rocket.mass.dry;
     
     if sim.flight == true
         amb.rho(i) = densitylookup_SI(amb.alt(i)); % getting freestream density [kg/m^3]
         amb.T(i) = amb.P(i)/(amb.rho(i)*amb.R); % calculating ambient temperature via ideal gas for dry air [K]
-        amb.Ma(i) = amb.vel(i)/sqrt(amb.gamma(i)*amb.R*amb.T(i)); % calculating current Mach number
+        amb.Ma(i) = amb.vel(i)/sqrt(amb.gamma*amb.R*amb.T(i)); % calculating current Mach number
         amb.Cdrag(i) = CDcurve(amb.Ma(i)); % getting current drag coefficient
         F.drag = (1/2)*amb.Cdrag(i)*amb.area*amb.rho*(amb.vel(i)^2); % calculating drag force [N]
-        F.weight(i) = rocket.mass(i)*amb.g; % calculating weight [N]
-        amb.accel(i) = (F.thrust(i) - F.drag(i) - F.weight(i))/rocket.mass(i);
+        F.weight(i) = Rocket.mass.total(i)*amb.g; % calculating weight [N]
+        amb.accel(i) = (F.thrust(i) - F.drag(i) - F.weight(i))/Rocket.mass.total(i);
         amb.vel(i+1) = amb.vel(i) + amb.accel(i)*sim.dt;
-        amb.alt(i+1) =  t(i) + amb.vel(i+1)*sim.dt;
+        amb.alt(i+1) =  amb.alt(i) + amb.vel(i+1)*sim.dt;
     else
         amb.alt(i+1) = amb.alt(i);
     end
