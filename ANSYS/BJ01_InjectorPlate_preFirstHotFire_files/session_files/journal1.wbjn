@@ -1,0 +1,107 @@
+# encoding: utf-8
+# 2019 R3
+SetScriptVersion(Version="19.5.112")
+Save(Overwrite=True)
+Save(Overwrite=True)
+template1 = GetTemplate(
+    TemplateName="Static Structural",
+    Solver="ANSYS")
+system1 = template1.CreateSystem()
+fileType1 = GetFileType(Name="EngineeringData")
+ImportFile(
+    FilePath="F:/Google Drive/Hopkins Rocketry Team/Subsystems/Propulsion/BJ-01 Development/BJ01_ANSYS/BJ01_ANSYS_EngineeringData.xml",
+    FileType=fileType1)
+engineeringDataComponent1 = system1.GetComponent(Name="Engineering Data")
+system2 = GetSystem(Name="Engineering Data")
+engineeringDataComponent2 = system2.GetComponent(Name="Engineering Data")
+engineeringDataComponent1.ReplaceWithShare(
+    TargetSystem=system1,
+    ComponentToShare=engineeringDataComponent2,
+    SourceSystem=system2)
+geometry1 = system1.GetContainer(ComponentName="Geometry")
+geometry1.SetFile(FilePath="F:/Google Drive/Hopkins Rocketry Team/Subsystems/Propulsion/BJ-01 Development/BJ01_CAD/BJ01_Combustion/injector_RevB/bj01-injector-plate_shower_14-067-revB.SLDPRT")
+geometry1.SetFile(FilePath="F:/Google Drive/Hopkins Rocketry Team/Subsystems/Propulsion/BJ-01 Development/BJ01_CAD/BJ01_Combustion/injector_RevB/bj01-injector-assembly_shower-revB.SLDASM")
+geometry1.Edit(IsSpaceClaimGeometry=True)
+geometry1.Exit()
+geometry1.SetFile(FilePath="F:/Google Drive/Hopkins Rocketry Team/Subsystems/Propulsion/BJ-01 Development/BJ01_CAD/BJ01_Combustion/injector_RevB/bj01-injector-assembly_shower-revB.SLDASM")
+geometry1.Edit(IsSpaceClaimGeometry=True)
+geometry1.Exit()
+geometry1.SetFile(FilePath="F:/Google Drive/Hopkins Rocketry Team/Subsystems/Propulsion/BJ-01 Development/BJ01_CAD/BJ01_Combustion/injector_RevB/bj01-injector-assembly_shower-revB.SLDASM")
+geometry1.Edit(IsSpaceClaimGeometry=True)
+geometry1.Exit()
+modelComponent1 = system1.GetComponent(Name="Model")
+modelComponent1.Refresh()
+model1 = system1.GetContainer(ComponentName="Model")
+model1.Edit()
+engineeringData1 = system1.GetContainer(ComponentName="Engineering Data")
+matl1 = engineeringData1.CreateMaterial(Name="6061-T6")
+matl1.Description = "From MMPDS-2003 - Table 3.6.2.0"
+material1 = engineeringData1.GetMaterial(Name="Structural Steel")
+matl2 = material1.Duplicate(TargetContainer=engineeringData1)
+matl2.Unlink()
+matl2.Description = "From MMPDS-2003 - Table 3.6.2.0"
+matl2.DisplayName = "6061-T6"
+matl1.Delete()
+matl2.DisplayName = "6061-T6"
+matl2.Description = "From MMPDS-2003 - Table 3.6.2.0 - A-basis"
+matlProp1 = matl2.GetProperty(Name="S-N Curve")
+matlProp1.Delete()
+matlProp2 = matl2.GetProperty(Name="Tensile Yield Strength")
+matlProp2.SetData(
+    Variables=["Tensile Yield Strength"],
+    Values=[["37000 [psi]"]])
+matlProp3 = matl2.GetProperty(Name="Compressive Yield Strength")
+matlProp3.SetData(
+    Variables=["Compressive Yield Strength"],
+    Values=[["37000 [psi]"]])
+matlProp2.SetData(
+    Variables=["Tensile Yield Strength"],
+    Values=[["35000 [psi]"]])
+matlProp3.SetData(
+    Variables=["Compressive Yield Strength"],
+    Values=[["35000 [psi]"]])
+matlProp4 = matl2.GetProperty(Name="Strain-Life Parameters")
+matlProp4.Delete()
+matlProp5 = matl2.GetProperty(Name="Tensile Ultimate Strength")
+matlProp5.SetData(
+    Variables=["Tensile Ultimate Strength"],
+    Values=[["42000 [psi]"]])
+matlProp6 = matl2.GetProperty(Name="Compressive Ultimate Strength")
+matlProp6.Delete()
+matlProp7 = matl2.GetProperty(Name="Density")
+matlProp7.SetData(
+    Variables=["Density"],
+    Values=[["0.098 [lbm in^-3]"]])
+matlProp8 = matl2.GetProperty(Name="Coefficient of Thermal Expansion")
+matlProp8.Delete(
+    Definition="Secant",
+    Behavior="Isotropic")
+matlProp9 = matl2.GetProperty(Name="Elasticity")
+matlProp9.Delete(Behavior="Isotropic")
+matlProp10 = matl2.GetProperty(Name="Resistivity")
+matlProp10.Delete(Behavior="Isotropic")
+matlProp11 = matl2.GetProperty(Name="Relative Permeability")
+matlProp11.Delete(Behavior="Isotropic")
+matlProp12 = matl2.GetProperty(Name="Specific Heat")
+matlProp12.Delete(Definition="Constant Pressure")
+matlProp13 = matl2.GetProperty(Name="Thermal Conductivity")
+matlProp13.Delete(Behavior="Isotropic")
+matlProp14 = matl2.CreateProperty(
+    Name="Elasticity",
+    Behavior="Isotropic",
+    Qualifiers={"Definition": "", "Behavior": "Isotropic"})
+matl2.Description = "From MMPDS-2003 - Table 3.6.2.0(b2) - A-basis"
+matlProp14.SetVariableProperty(
+    VariableName="Young's Modulus",
+    Property="Unit",
+    Value="psi")
+matlProp14.SetData(
+    Index=-1,
+    Variables=["Young's Modulus"],
+    Values=[["9900 [psi]"]])
+matlProp14.SetData(
+    Variables=["Poisson's Ratio"],
+    Values=[["0.33"]])
+Save(Overwrite=True)
+Refresh()
+Save(Overwrite=True)
