@@ -12,8 +12,6 @@ nb = load('HF1_nomburn.mat');
 %      structure "nb" = nominal burn
 % ** this was done for ease of coding/shorthand **
 
-% ALL PRESSURES ARE GAUGE AT THE MOMENT (11/24/19)
-
 %% Creating important vars from data to use in calcs later on
 
 % Ask max for data entry for "ignite signal send"
