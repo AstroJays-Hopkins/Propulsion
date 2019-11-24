@@ -29,8 +29,7 @@ nb.mdot_ox = diff(nb.LCR1)./nb.dtime;
 nb.totimpulse = sum(nb.dtime.*nb.thrust(2:nb.l));
 nb.totimpulse_extrap = nb.totimpulse*36/30; %extrapolating what the total impulse would be for a burn using a full tank
 nb.thrustavg = mean(nb.thrust(7:nb.l));
-nb.deltaP = nb.PTR1 - nb.PTC1; % diff in pressure from ox tank to CC (psi)
-
+nb.deltaP = nb.PTR1 - nb.PTFC1; % diff in pressure f
 %% Plots
 
 % plotting thrust vs. time
@@ -62,13 +61,4 @@ figure, hold on
     grid on, grid minor
 hold off
 
-% plotting mdot and deltaP b/w OxTank and CC vs. time 
-figure, hold on
-    mdotdptime = plotyy(nb.time(2:nb.l), nb.mdot_ox, nb.time(2:nb.l), nb.deltaP(2:nb.l));
-    xlabel('Time (s)')
-    ylabel(mdotdptime(1),'Oxidizer Mass Flow Rate (lbm/s)')
-    ylabel(mdotdptime(2),'Pressure Drop Across Main Ox Line & Injector (psia)')
-    title('Ox Flow Rate and deltaP vs. Time - HF1')
-    legend('mdot_{ox}','\Delta P_{tank-combch}')
-    grid on, grid minor
-hold off
+% plotting 
