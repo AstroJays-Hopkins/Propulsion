@@ -167,15 +167,14 @@ Rocket.mass.total = RT.bulk.mass + CC.fuel.mass + Rocket.mass.dry;
 %% 5. Main Sim Loop
 while(sim.propellant == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
     
-    if i ~= 1   % setting up next iteration (time-marching)
-        t(i) = t(i-1) + sim.dt;
-        CC.fuel.r(i) = CC.fuel.r(i-1) - CC.fuel.rdot(i-1)*sim.dt;
-        RT.liq.mass(i) = RT.liq.mass(i-1) - CC.mdot.ox(i-1)*sim.dt;
-        CC.fuel.mass(i) = CC.fuel.mass(i-1) - CC.mdot.fuel(i-1)*sim.dt;
-        Rocket.mass.total(i) = RT.liq.mass(i) + CC.fuel.mass(i) + Rocket.mass.dry;
-    end 
+    % setting up next iteration (time-marching)
+    t(i) = t(i-1) + sim.dt;
+    CC.fuel.r(i) = CC.fuel.r(i-1) - CC.fuel.rdot(i-1)*sim.dt;
+    RT.liq.mass(i+1) = RT.liq.mass(i-1) - CC.mdot.ox(i-1)*sim.dt;
+    CC.fuel.mass(i+1) = CC.fuel.mass(i-1) - CC.mdot.fuel(i-1)*sim.dt;
+    Rocket.mass.total(i+1) = RT.liq.mass(i+1) + CC.fuel.mass(i+1) + Rocket.mass.dry;
     amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
-
+    
     % state in RT
     RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
     RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
@@ -266,11 +265,11 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     % checking if either of the propellant masses in the next time step is
     % negative, signaling to end the simulation of the burn if this
     % condition is met
-    if RT.liq.mass(i) <= 0
+    if RT.liq.mass(i+1) <= 0
         sim.ox = false;
         sim.propellant = false;
     end
-    if CC.fuel.mass(i) <= 0
+    if CC.fuel.mass(i+1) <= 0
         sim.fuel = false;
         sim.propellant = false;
     end

@@ -49,47 +49,79 @@ for i = 1:nb.l
         nb.CdA(i,1) = nb.mdot_ox(i,1)./sqrt(2*32.2*12*nb.rho_ox(i,1).*nb.deltaP(i,1));
     end
 end
-plot(nb.time,nb.CdA)
-nb.Cd = nb.CdA/A_inj;
+
 
 %% Plots
 
-% plotting thrust vs. time
-figure, hold on
-    plots.thrtime = plot(nb.time, nb.thrust);
+%% plotting thrust vs. time
+figure('Name', 'Thrust'), hold on
+
+    plot(nb.time, nb.thrust);
+    
     xlabel('Time (s)')
     ylabel('Thrust (lbf)')
     title('Thrust vs. Time - HF1')
     grid on, grid minor
+    
 hold off
 
-% plotting thrust and chamber pressure vs. time
-figure, hold on
-    plots.thrpchtime = plotyy(nb.time,nb.thrust,nb.time,nb.PTC1); 
+%% plotting thrust and chamber pressure vs. time
+figure('Name', 'Thrust & Chamber P'), hold on
+    
+    yyaxis left
+        plot(nb.time,nb.thrust);
+        ylabel('Thrust (lbf)')
+    
+    yyaxis right
+        plot(nb.time,nb.PTC1); 
+        ylabel('Chamber Pressure (psia)')
+    
     xlabel('Time (s)')
-    ylabel(plots.thrpchtime(1),'Thrust (lbf)')
-    ylabel(plots.thrpchtime(2),'Chamber Pressure (psia)')
     title('Thrust and Chamber Pressure vs. Time - HF1')
     grid on, grid minor
+    
 hold off
 
-% plotting ox tank and chamber pressures
-figure, hold on
-    plots.presstime = plot(nb.time, nb.PTR1, nb.time, nb.PTC1);
+%% plotting ox tank and chamber pressures
+figure('Name', 'Tank & Chamber P'), hold on
+    
+    plot(nb.time, nb.PTR1, nb.time, nb.PTC1);
+    
     xlabel('Time (s)')
     ylabel('Pressure (psia)')
     title('Pressure vs. Time - HF1')
     legend('Tank Pressure','Chamber Pressure')
     grid on, grid minor
+    
 hold off
 
-% plotting mdot and deltaP b/w OxTank and CC vs. time 
-figure, hold on
-    plots.mdotdptime = plotyy(nb.time, nb.mdot_ox, nb.time, nb.deltaP);
+%% plotting mdot and deltaP b/w OxTank and CC vs. time 
+figure('Name', 'mdot & dP'), hold on
+
+    yyaxis left
+    	plot(nb.time, nb.mdot_ox)
+        ylabel('Oxidizer Mass Flow Rate (lbm/s)')
+        
+    yyaxis right
+        plot(nb.time, nb.deltaP);
+        ylabel('Pressure Drop Across Main Ox Line & Injector (psia)')
+        
     xlabel('Time (s)')
-    ylabel(plots.mdotdptime(1),'Oxidizer Mass Flow Rate (lbm/s)')
-    ylabel(plots.mdotdptime(2),'Pressure Drop Across Main Ox Line & Injector (psia)')
-    title('Ox Flow Rate and deltaP vs. Time - HF1')
+    title('Ox Flow Rate and \Delta P vs. Time - HF1')
     legend('mdot_{ox}','\Delta P_{tank-combch}')
     grid on, grid minor
+    
+hold off
+
+%% plotting effective discharge area vs. time
+figure('Name', 'CdA'), hold on
+
+    plot(nb.time,nb.CdA)
+    
+    nb.Cd = nb.CdA/A_inj;
+    xlabel('Time (s)')
+    ylabel('Effective Discharge Area (in^2)')
+    title('Effective Discharge Area vs. Time - HF1')
+    grid on, grid minor
+    
 hold off
