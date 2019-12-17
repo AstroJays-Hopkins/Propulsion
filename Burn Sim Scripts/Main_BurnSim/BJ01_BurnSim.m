@@ -85,7 +85,8 @@ RT.bulk.height = 3.441666667 /Conv.MtoFt; % total height of internal volume of R
 InjLine.length1 = 0 / Conv.MtoFt; % length of first segment of vent line (the vertical portion) [ft --> m]
 InjLine.length2 = 0 / Conv.MtoFt; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
 InjLine.length3 = 0 / Conv.MtoFt; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
-InjLine.CdA = 0.000129511324641318/(Conv.MtoFt^2); % effective discharge area of injector line [ft^2 --> m^2]
+InjLine.CdA = 0.000129511324641318 / (Conv.MtoFt^2); % effective discharge area of injector line [ft^2 --> m^2]
+% ------- CHANGE CdA^^
 
 % ------ Injector Geometry & Flow Coefficients ------ %
 
@@ -100,7 +101,7 @@ Nozzle.ConicalConvergingKnockdown = 0.99; %reduction in thrust due to losses in 
 Nozzle.ConicalDivergingKnockdown = 0.983; %correction factor for thrust knockdown on 15° half angle of divergence conical nozzle vs ideal bell nozzle
 
 % ------ Universal Constants & Atmospheric Properties ------ %
-amb.g = 9.80665; % standard gravitational acceleration [m/s^2]
+amb.g0 = 9.80665; % standard gravitational acceleration [m/s^2]
 amb.R = 287.05; % ideal gas constant for air [J/kg-K]
 amb.gamma = 1.41; % rough value for Cp,p/Cp,v for dry air
 amb.area = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
@@ -129,7 +130,7 @@ Nozzle.throat.dia = 0.966 / Conv.MtoIn; % throat diameter [in-->m]
 Nozzle.exit.dia = 2.171 / Conv.MtoIn; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
-sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+sim.flight = true; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
 sim.perfplot = true;
 
 sim.dt = 0.025; % delta-t we use for our time-stepping simulation
@@ -243,11 +244,13 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     Nozzle.exit.u(i) = sqrt(((2*CC.gamma(i))/(CC.gamma(i)-1))*CC.R(i)*CC.T0(i)*(1-((Nozzle.exit.P(i)/CC.P0(i))^((CC.gamma(i)-1)/CC.gamma(i))))); % calculating nozzle exit velocity [m/s]
     Nozzle.exit.M(i) = sqrt((2/(CC.gamma(i)-1))*((CC.T0(i)/Nozzle.exit.T(i))-1)); % calculating mach number at nozzle exit
     
-    % calculating thrust
+    % Calculating thrust
     F.thrust_momentum(i) = (CC.mdot.total(i) * Nozzle.exit.u(i))*(Nozzle.ConicalConvergingKnockdown*Nozzle.ConicalDivergingKnockdown); % momentum term of the engine's thrust [N]
     F.thrust_pressure(i) = (Nozzle.exit.P(i) - amb.P(i)) * Nozzle.exit.area; %Calculate thrust
     F.thrust(i) = F.thrust_momentum(i) + F.thrust_pressure(i); % total thrust produced by the engine [N]
     
+    % Calculating specific impulse
+    Engine.Isp(i) = F.thrust(i)./(amb.g0.*CC.mdot.total(i)); % [s]
     
     if sim.flight == true
         amb.rho(i) = densitylookup_SI(amb.alt(i)); % getting freestream density [kg/m^3]
@@ -255,7 +258,7 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
         amb.Ma(i) = amb.vel(i)/sqrt(amb.gamma*amb.R*amb.T(i)); % calculating current Mach number
         amb.Cdrag(i) = CDcurve(amb.Ma(i)); % getting current drag coefficient
         F.drag = (1/2)*amb.Cdrag(i)*amb.area*amb.rho*(amb.vel(i)^2); % calculating drag force [N]
-        F.weight(i) = Rocket.mass.total(i)*amb.g; % calculating weight [N]
+        F.weight(i) = Rocket.mass.total(i)*amb.g0; % calculating weight [N]
         amb.accel(i) = (F.thrust(i) - F.drag(i) - F.weight(i))/Rocket.mass.total(i);
         amb.vel(i+1) = amb.vel(i) + amb.accel(i)*sim.dt;
         amb.alt(i+1) =  amb.alt(i) + amb.vel(i+1)*sim.dt;
@@ -269,27 +272,99 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     if RT.liq.mass(i) <= 0
         sim.ox = false;
         sim.propellant = false;
+        i_burnout = i
+        t_burnout = t(i)
     end
     if CC.fuel.mass(i) <= 0
         sim.fuel = false;
         sim.propellant = false;
+        i_burnout = i
+        t_burnout = t(i)
     end
-    
-    i = i + 1;
+    if sim.propellant == true
+        i = i + 1;
+    end
 end
 
+% Continuing flight sim
+if sim.flight == true
+
+    sim.climbing = true;
+    
+    while sim.climbing == true
+        
+        t(i) = t(i-1) + sim.dt;
+
+        RT.liq.mass(i) = RT.liq.mass(i-1);
+        CC.fuel.mass(i) = CC.fuel.mass(i-1);
+        Rocket.mass.total(i) = Rocket.mass.total(i-1);
+        
+        amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
+        amb.rho(i) = densitylookup_SI(amb.alt(i)); % getting freestream density [kg/m^3]
+        amb.T(i) = amb.P(i)/(amb.rho(i)*amb.R); % calculating ambient temperature via ideal gas for dry air [K]
+       
+        amb.Ma(i) = amb.vel(i)/sqrt(amb.gamma*amb.R*amb.T(i)); % calculating current Mach number
+        amb.Cdrag(i) = CDcurve(amb.Ma(i)); % getting current drag coefficient
+        F.drag = (1/2)*amb.Cdrag(i)*amb.area*amb.rho*(amb.vel(i)^2); % calculating drag force [N]
+        
+        F.weight(i) = Rocket.mass.total(i)*amb.g0; % calculating weight [N]
+       
+        F.thrust(i) = 0; % setting thrust to zero [N]
+        
+        amb.accel(i) = (F.thrust(i) - F.drag(i) - F.weight(i))/Rocket.mass.total(i); % calculating net accel on rocket (assumes perfectly vert. flight);
+        amb.vel(i+1) = amb.vel(i) + amb.accel(i)*sim.dt;
+        amb.alt(i+1) =  amb.alt(i) + amb.vel(i+1)*sim.dt;
+        
+        if amb.vel(i+1) <= 0
+            sim.climbing = false;
+            amb.vel = amb.vel(1:i);
+            amb.alt = amb.alt(1:i);
+        elseif isnan(amb.alt(i+1)) == true
+            sim.climbing = false;
+            amb.vel = amb.vel(1:i);
+            amb.alt = amb.alt(1:i);
+        else
+            i = i + 1;
+        end
+        
+    end
+    
+else
+    amb.vel = amb.vel(1:i);
+    amb.alt = amb.alt(1:i);
+    
+end
+
+
 %% 6. Results
-
-F.thrust_lbf = F.thrust / Conv.LBFtoN;
-
 
 if sim.perfplot == true
     
     figure('Name','Thrust vs. Time'), hold on
-        plot(t, F.thrust_lbf);
+        plot(t(1:i_burnout), F.thrust(1:i_burnout)/Conv.LBFtoN);
         xlabel('Time (s)')
         ylabel('Thrust (lbf)')
         title('Thrust vs. Time')
+        plot(t(1:i_burnout),F.thrust_momentum/Conv.LBFtoN)
+        plot(t(1:i_burnout),F.thrust_pressure/Conv.LBFtoN)
+        legend('Total Thrust','Momentum Thrust','Pressure Thrust')
     hold off
+    
+    figure('Name','Isp vs. Time'), hold on
+        plot(t(1:i_burnout), Engine.Isp);
+        xlabel('Time (s)')
+        ylabel('Specific Impulse (s)')
+        title('I_{sp} vs. Time')
+    hold off
+    
+    if sim.flight == true
+        
+        figure('Name','Alt vs. Time'), hold on
+            plot(t,amb.alt);
+            xlabel('Time (s)')
+            ylabel('Altitude (m)')
+            title('Altitude vs. Time')
+        hold off
+    end
     
 end
