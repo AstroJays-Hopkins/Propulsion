@@ -1,6 +1,6 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2511
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-Oblique;
-}
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-BoldOblique;
+\f3\fswiss\fcharset0 Helvetica-Oblique;}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
 \margl1440\margr1440\vieww17020\viewh8400\viewkind0
@@ -16,11 +16,9 @@ Saves as excel \'97> Excel imported by Dan Zanko to Matlab\
 	\'93HF1_fulltest.mat\'94\'97A new set was created with a start at 722 (raw.mat - when fueling starts) until 3397\
 				(index from raw.mat - when ox mass returns to constant (end of propellant flow)) (time zeroed)\
 \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 	\'93HF1_fullburn.mat\'94\'97A new set was created started at [full test index used] 2398 (MV-R1 starts opening) \
-				 to 2635 (when. Thrust goes to ~0 lbf)\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 \
+	\'93HF1_fullburn.mat\'94\'97A new set was created started at [full test index used] 2398 (MV-R1 starts opening) \
+				 to 2598 (when. Thrust goes to ~0 lbf)\
+\
 	\'93HF1_nomburn.mat\'94\'97A new set was created started at [raw converted index used] 3116 (MV-R1 starts opening)\
 			              to 3227 (when large drop-off in thrust observed)\
 \
@@ -40,8 +38,14 @@ LC data = lbf\
 \
 
 \f0\b \ul Key Data Points:\
+\
 
-\f2\i\b0 \ulnone Propellant Loading:\
+\f2\i \ulnone ALL Indices in this section refer to \'93HF1_RawConverted.dat\'94\
+
+\f0\i0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f3\i\b0 \cf0 Propellant Loading:\
 	
 \f1\i0 ~0.8lbm rise starting at index722 and ending at ~index799\
 	Mass is help steady then until ~index1207 when it then begins to steadily rise with a trace similar to an inverted parabola\
@@ -50,18 +54,26 @@ LC data = lbf\
 \f0\b \ul \
 \
 
-\f2\i\b0 \ulnone Engine startup:
+\f3\i\b0 \ulnone Engine startup:
 \f1\i0 \
 	MV-R1 starts opening at index 3116 (first TRUE value in raw data .mat) - last true value at 3121\
 \
 
-\f2\i Attempted shutdown
+\f3\i Attempted shutdown
 \f1\i0 \
 	MV-R1 attempts close at index 3164 (first TRUE value in raw data .mat) - last true value at 3165\
 \
 
-\f2\i Actual \'93shutdown\'94 (engine burnout)\
+\f3\i Liquid Depletion\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f1\i0 	Total Thrust (LC-C1 + LC-C2) drops off significantly at index 3227 (in raw data .mat)\
-	LC-R1 (ox tank) levels out at index 3371 \
-	PT-C1 (chamb press) levels out at index 3345}
+\f1\i0 \cf0 	Total Thrust (LC-C1 + LC-C2) drops off significantly at index 3227 (in raw data .mat)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f3\i \cf0 \
+Engine Burnout \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f1\i0 \cf0 	PT-C1 (chamb press) levels out at index 3345 (THIS LIKELY WHEN FUEL DEPLETION OCCURS)\
+	LC-R1 (ox tank) levels out at index 3371 (N2O Depletion)\
+}

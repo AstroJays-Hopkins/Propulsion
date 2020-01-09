@@ -11,6 +11,7 @@ ft = load('HF1_fulltest.mat');
 fb = load('HF1_fullburn.mat');
 nb = load('HF1_nomburn.mat');
 
+
 % NOTE::::: 
 %      structure tag "ft" = full test data
 %      structure tag "fb" = full burn data (includes long trailoff)
@@ -56,7 +57,7 @@ eng.A_inj = eng.n_injholes * eng.A_injhole; % [in^2]
 
 fb.deltaP = fb.PTR1 - fb.PTC1; % diff in pressure from ox tank to CC (psi)
 
-for i = 1:nb.l
+for i = 1:fb.l
     fb.rho_ox(i,1) = 0.000036127*N2O_NonSat_Lookup(FtoK(fb.TCR3(i)),psi2MPa(fb.PTR1(i)),"Density"); % density of n2o downstream of runtank converted to lbm/in^3
     if fb.deltaP(i,1) < 0
         fb.CdA(i,1) = 0;
@@ -83,9 +84,22 @@ end
 fb.totimpulse = sum(fb.dtime.*fb.thrust);
 fb.thrustavg = mean(fb.thrust(7:fb.l));
 
-%% Full Burn Plots
+%% Plots
 
-    %% Plotting thrust and tank pressure vs. time
+    %% Thrust vs. time
+    figure('Name', 'Thrust'), hold on
+
+        plot(fb.time,fb.thrust, fb.time,smooth(fb.thrust));
+
+        xlabel('Time (s)')
+        ylabel('Thrust (lbf)')
+        title('Thrust vs. Time - HF1')
+        grid on, grid minor
+        legend('Raw','Smoothed')
+
+    hold off
+    
+    %% Thrust and tank pressure vs. time
     figure, hold on
         subplot(2,1,1)
             plot(fb.time,fb.LCR1)
@@ -101,19 +115,6 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
 
-    %% Plotting solely thrust vs. time
-    figure('Name', 'Thrust'), hold on
-
-        plot(fb.time,fb.thrust, fb.time,smooth(fb.thrust));
-
-        xlabel('Time (s)')
-        ylabel('Thrust (lbf)')
-        title('Thrust vs. Time - HF1')
-        grid on, grid minor
-        legend('Raw','Smoothed')
-
-    hold off
-
     %% Plotting thrust and chamber pressure vs. time
     figure('Name', 'Thrust & Chamber P'), hold on
         
@@ -124,10 +125,10 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         yyaxis left
             plot(fb.time,fb.thrust);
             ylabel('Thrust (lbf)')
-
         yyaxis right
             plot(fb.time,fb.PTC1); 
             ylabel('Chamber Pressure (psia)')
+            ylim([0 inf])
 
     hold off
 
@@ -144,10 +145,10 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
 
     hold off
     
-    %% Plotting smoothed pressures vs. not smoothed
+    %% Plotting smoothed Chamber Pressures vs. not smoothed
     figure('Name', 'Chamber P'), hold on
 
-        plot(fb.time, fb.PTC1, fb.time, smooth(fb.PTC1));
+        plot(fb.time, fb.PTC1, fb.time, smooth(fb.PTC1(1:201)));
 
         xlabel('Time (s)')
         ylabel('Pressure (psia)')
@@ -159,31 +160,56 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
     
     %% Plotting smoothed mdot_ox vs. not smoothed
     figure('Name', 'Chamber P'), hold on
-
         plot(fb.time, fb.mdot_ox, fb.time, smooth(fb.mdot_ox));
-
         xlabel('Time (s)')
         ylabel('N_2O Mass Flow Rate (lbm/s)')
         title('Oxidizer Mass Flow Rate vs. Time - HF1')
         legend('Raw','Smoothed')
         grid on, grid minor
-
     hold off
     
     %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(2,1,1)
-            plot(fb.time, fb.mdot_ox)
+            plot(fb.time,fb.mdot_ox,fb.time,smooth(fb.mdot_ox))
             xlabel('Time (s)')
             ylabel('Oxidizer Mass Flow Rate (lbm/s)')
             grid on, grid minor
             title('Oxidizer Flow Rate vs. Time - HF1')
+            legend('Raw','Smoothed')
+            ylim([0 inf])
         subplot(2,1,2)
-            plot(fb.time, fb.deltaP);
+            plot(fb.time, fb.deltaP,fb.time,smooth(fb.deltaP));
             xlabel('Time (s)')
             ylabel('\DeltaP (psig)')
             grid on, grid minor
             title('Lower Tank-to-Chamber \Delta P vs. Time - HF1')
+            legend('Raw','Smoothed')
+    hold off
+
+    %% Plotting mdot and Pch & thrust vs. time 
+    figure('Name', 'mdot & dP'), hold on
+        subplot(3,1,1)
+            plot(fb.time,smooth(fb.mdot_ox))
+            xlabel('Time (s)')
+            ylabel('Oxidizer Mass Flow Rate (lbm/s)')
+            grid on, grid minor
+            title('(Smoothed) Oxidizer Flow Rate vs. Time - HF1')
+            ylim([0 inf])
+        subplot(3,1,2)
+            plot(fb.time, smooth(fb.PTC1));
+            xlabel('Time (s)')
+            ylabel('Chamber Pressure (psia)')
+            grid on, grid minor
+            title('(Smoothed) Chamber Pressure vs. Time - HF1')
+            legend('Raw')
+        subplot(3,1,3)
+            plot(fb.time, smooth(fb.thrust));
+            xlabel('Time (s)')
+            ylabel('Thrust (lbf)')
+            grid on, grid minor
+            title('(Smoothed) Thrust vs. Time - HF1')
+            legend('Raw')
     hold off
     
     %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
