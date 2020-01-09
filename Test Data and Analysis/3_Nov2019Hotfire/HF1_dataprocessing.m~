@@ -116,11 +116,7 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
 
     %% Plotting thrust and chamber pressure vs. time
     figure('Name', 'Thrust & Chamber P'), hold on
-        
-        xlabel('Time (s)')
-        title('Thrust and Chamber Pressure vs. Time - HF1')
-        grid on, grid minor
-        
+
         yyaxis left
             plot(fb.time,fb.thrust);
             ylabel('Thrust (lbf)')
@@ -129,12 +125,16 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             plot(fb.time,fb.PTC1); 
             ylabel('Chamber Pressure (psia)')
 
+        xlabel('Time (s)')
+        title('Thrust and Chamber Pressure vs. Time - HF1')
+        grid on, grid minor
+
     hold off
 
-    %% Plotting ox tank and chamber pressures
+    %% plotting ox tank and chamber pressures
     figure('Name', 'Tank & Chamber P'), hold on
 
-        plot(fb.time, fb.PTR1, fb.time, fb.PTC1);
+        plot(nb.time, nb.PTR1, nb.time, nb.PTC1);
 
         xlabel('Time (s)')
         ylabel('Pressure (psia)')
@@ -143,60 +143,65 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         grid on, grid minor
 
     hold off
+
+%% plotting smoothed pressures vs. not smoothed
+figure('Name', 'Chamber P'), hold on
     
-    %% Plotting smoothed pressures vs. not smoothed
-    figure('Name', 'Chamber P'), hold on
+    plot(nb.time, nb.PTC1, nb.time, nb_smth.PTC1);
+    
+    xlabel('Time (s)')
+    ylabel('Pressure (psia)')
+    title('Chamber Pressure vs. Time - HF1')
+    legend('Raw','Smoothed')
+    grid on, grid minor
+    
+hold off
 
-        plot(fb.time, fb.PTC1, fb.time, smooth(fb.PTC1));
+%% plotting smoothed mdot_ox vs. not smoothed
+figure('Name', 'Chamber P'), hold on
+    
+    plot(nb.time, nb.mdot_ox, nb.time, nb_smth.mdot_ox);
+    
+    xlabel('Time (s)')
+    ylabel('N_2O Mass Flow Rate (lbm/s)')
+    title('Oxidizer Mass Flow Rate vs. Time - HF1')
+    legend('Raw','Smoothed')
+    grid on, grid minor
+    
+hold off
 
+%% plotting mdot and deltaP b/w OxTank and CC vs. time 
+figure('Name', 'mdot & dP'), hold on
+
+    subplot(2,1,1)
+    	plot(nb.time, nb.mdot_ox)
         xlabel('Time (s)')
-        ylabel('Pressure (psia)')
-        title('Chamber Pressure vs. Time - HF1')
-        legend('Raw','Smoothed')
+        ylabel('Oxidizer Mass Flow Rate (lbm/s)')
         grid on, grid minor
+        title('Ox Flow Rate vs. Time - HF1')
 
-    hold off
-    
-    %% Plotting smoothed mdot_ox vs. not smoothed
-    figure('Name', 'Chamber P'), hold on
-
-        plot(fb.time, fb.mdot_ox, fb.time, smooth(fb.mdot_ox));
-
+        
+    subplot(2,1,2)
+        plot(nb.time, nb.deltaP);
         xlabel('Time (s)')
-        ylabel('N_2O Mass Flow Rate (lbm/s)')
-        title('Oxidizer Mass Flow Rate vs. Time - HF1')
-        legend('Raw','Smoothed')
+        ylabel('\DeltaP Tank-to-Chamber (psig)')
         grid on, grid minor
+        title('Ox Flow Rate and \Delta P vs. Time - HF1')
+    
+hold off
 
-    hold off
-    
-    %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
-    figure('Name', 'mdot & dP'), hold on
-        subplot(2,1,1)
-            plot(fb.time, fb.mdot_ox)
-            xlabel('Time (s)')
-            ylabel('Oxidizer Mass Flow Rate (lbm/s)')
-            grid on, grid minor
-            title('Oxidizer Flow Rate vs. Time - HF1')
-        subplot(2,1,2)
-            plot(fb.time, fb.deltaP);
-            xlabel('Time (s)')
-            ylabel('\DeltaP (psig)')
-            grid on, grid minor
-            title('Lower Tank-to-Chamber \Delta P vs. Time - HF1')
-    hold off
-    
-    %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
-    % 
-    % 
-    % figure('Name', 'CdA'), hold on
-    % 
-    %     plot(fb.time,nb.CdA)
-    %     
-    %     fb.Cd = fb.CdA/eng.A_inj;
-    %     xlabel('Time (s)')
-    %     ylabel('Effective Discharge Area (in^2)')
-    %     title('Effective Discharge Area vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
-    %     grid on, grid minor
-    %     
-    % hold off
+
+%% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
+% 
+% 
+% figure('Name', 'CdA'), hold on
+% 
+%     plot(nb.time,nb.CdA)
+%     
+%     nb.Cd = nb.CdA/eng.A_inj;
+%     xlabel('Time (s)')
+%     ylabel('Effective Discharge Area (in^2)')
+%     title('Effective Discharge Area vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
+%     grid on, grid minor
+%     
+% hold off
