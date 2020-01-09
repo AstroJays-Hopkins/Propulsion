@@ -104,16 +104,18 @@ figure('Name', 'mdot & dP'), hold on
         
     yyaxis right
         plot(nb.time, nb.deltaP);
-        ylabel('Pressure Drop Across Main Ox Line & Injector (psia)')
+        ylabel('Pressure Drop Across Main Ox Line & Injector (psig)')
         
     xlabel('Time (s)')
-    title('Ox Flow Rate and \Delta P vs. Time - HF1')
+    title('Ox Flow Rate and \Delta P vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
     legend('mdot_{ox}','\Delta P_{tank-combch}')
     grid on, grid minor
     
 hold off
 
 %% plotting effective discharge area vs. time
+
+
 figure('Name', 'CdA'), hold on
 
     plot(nb.time,nb.CdA)
@@ -121,7 +123,7 @@ figure('Name', 'CdA'), hold on
     nb.Cd = nb.CdA/A_inj;
     xlabel('Time (s)')
     ylabel('Effective Discharge Area (in^2)')
-    title('Effective Discharge Area vs. Time - HF1')
+    title('Effective Discharge Area vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
     grid on, grid minor
     
 hold off
