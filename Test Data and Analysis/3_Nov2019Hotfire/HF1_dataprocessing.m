@@ -33,7 +33,10 @@ nb = load('HF1_nomburn.mat');
     nb.dtime(1,1) = 0;
     nb.dtime(2:nb.l,1) = diff(nb.time);
 
-
+% Key Points in Burn
+    fb.liqdepl = 106; % index corresponding to depletion of liquid in RT
+    fb.end = 158; % index corresponding to thrust hitting ~10% of the eyeballed avg. val during liq. phase of burn
+    
 % N2O Mass Flow Rates
     fb.mdot_ox(1,1) = 0;
     fb.mdot_ox(2:fb.l,1) = -diff(fb.LCR1)./fb.dtime(2:fb.l,1);
@@ -43,7 +46,6 @@ nb = load('HF1_nomburn.mat');
     
 % Thrust (total thrust = sum of the two thrust load cells)
     fb.thrust = fb.LCC1 + fb.LCC2;
-    
     nb.thrust = nb.LCC1 + nb.LCC2;
 
 %% Ox Flow Calcs
@@ -66,7 +68,7 @@ for i = 1:fb.l
     end
 end
 
-%% Regression Calcs
+%% (NEEDS WORK) Regression Calcs
 
 % **DISCLAIMER**
 % Because we actually ran out of HDPE to combust, these regression calcs
@@ -78,14 +80,39 @@ end
 % This can then be used to get a rough value for average specific impulse
 
 
-
 %% Engine Performance Calcs
 
-fb.totimpulse = sum(fb.dtime.*fb.thrust);
-fb.thrustavg = mean(fb.thrust(7:fb.l));
+% Chamber Pressure
+fb.PchAvg.liq = mean(fb.PTC1(1:fb.liqdepl));
+fb.PchAvg.ull = mean(fb.PTC1(fb.liqdepl:fb.end));
+fb.PchAvg.tot = mean(fb.PTC1(1:fb.end));
 
-%% Plots
+% Oxidizer Spent
+fb.SpentOx.liq = fb.LCR1(1) - fb.LCR1(fb.liqdepl);
+fb.SpentOx.ull = fb.LCR1(fb.liqdepl) - fb.LCR1(fb.end);
+fb.SpentOx.tot = fb.SpentOx.liq + fb.SpentOx.ull;
 
+% Ox. Mass Flow Rate
+fb.AvgMdotOx.liq = mean(fb.mdot_ox(1:fb.liqdepl));
+fb.AvgMdotOx.ull = mean(fb.mdot_ox(fb.liqdepl:fb.end));
+fb.AvgMdotOx.tot = mean(fb.mdot_ox(1:fb.end));
+
+% Thrust
+fb.maxthrust.liq = max(fb.thrust(1:fb.liqdepl));
+fb.maxthrust.ull = max(fb.thrust(fb.liqdepl:fb.end));
+fb.maxthrust.tot = max(fb.thrust(1:fb.end));
+
+fb.thrustavg.liq = mean(fb.thrust(1:fb.liqdepl));
+fb.thrustavg.ull = mean(fb.thrust(fb.liqdepl:fb.end));
+fb.thrustavg.tot = mean(fb.thrust(1:fb.end));
+
+% Impulse
+fb.totimpulse.liq = sum(fb.dtime(1:fb.liqdepl).*fb.thrust(1:fb.liqdepl));
+fb.totimpulse.ull = sum(fb.dtime(fb.liqdepl:fb.end).*fb.thrust(fb.liqdepl:fb.end));
+fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
+
+
+%% -------------------------------- Plots ------------------------------------- %%
     %% Thrust vs. time
     figure('Name', 'Thrust'), hold on
 
@@ -97,8 +124,7 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         grid on, grid minor
         legend('Raw','Smoothed')
 
-    hold off
-    
+    hold off  
     %% Thrust and tank pressure vs. time
     figure, hold on
         subplot(2,1,1)
@@ -114,7 +140,6 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             ylabel('Tank Pressure (psia)')
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
-
     %% Plotting thrust and chamber pressure vs. time
     figure('Name', 'Thrust & Chamber P'), hold on
         
@@ -131,7 +156,6 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             ylim([0 inf])
 
     hold off
-
     %% Plotting ox tank and chamber pressures
     figure('Name', 'Tank & Chamber P'), hold on
 
@@ -143,8 +167,7 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         legend('Tank Pressure','Chamber Pressure')
         grid on, grid minor
 
-    hold off
-    
+    hold off   
     %% Plotting smoothed Chamber Pressures vs. not smoothed
     figure('Name', 'Chamber P'), hold on
 
@@ -156,8 +179,7 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         legend('Raw','Smoothed')
         grid on, grid minor
 
-    hold off
-    
+    hold off  
     %% Plotting smoothed mdot_ox vs. not smoothed
     figure('Name', 'Chamber P'), hold on
         plot(fb.time, fb.mdot_ox, fb.time, smooth(fb.mdot_ox));
@@ -167,7 +189,6 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
         legend('Raw','Smoothed')
         grid on, grid minor
     hold off
-    
     %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(2,1,1)
@@ -186,7 +207,6 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             title('Lower Tank-to-Chamber \Delta P vs. Time - HF1')
             legend('Raw','Smoothed')
     hold off
-
     %% Plotting mdot and Pch & thrust vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(3,1,1)
@@ -210,8 +230,7 @@ fb.thrustavg = mean(fb.thrust(7:fb.l));
             grid on, grid minor
             title('(Smoothed) Thrust vs. Time - HF1')
             legend('Raw')
-    hold off
-    
+    hold off 
     %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
     % 
     % 
