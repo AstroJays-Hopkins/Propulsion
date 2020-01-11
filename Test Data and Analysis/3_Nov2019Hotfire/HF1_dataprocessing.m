@@ -231,6 +231,41 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
             title('(Smoothed) Thrust vs. Time - HF1')
             legend('Raw')
     hold off 
+    
+    %% Ullage and Liq Temps and tank pressure vs. time
+    figure, hold on
+        subplot(2,1,1)
+            plot(fb.time,fb.TCR3, fb.time,fb.TCR1)
+            grid on, grid minor
+            xlabel('Time (s)')
+            ylabel('Temperature (ºF)')
+            title('N_2O Run Tank Temperatures vs. Time - HF1')
+            legend('Tank Outlet Fluid Temp', 'Ullage Temp')
+        subplot(2,1,2)
+            plot(fb.time,fb.PTR1)
+            grid on, grid minor
+            xlabel('Time (s)')
+            ylabel('Tank Pressure (psia)')
+            title('Lower Tank Pressure vs. Time - HF1')
+    hold off
+    
+    %% Combustion Chamber Temps and Chamber pressure vs. time
+    figure, hold on
+        subplot(2,1,1)
+            plot(fb.time,fb.TCC1,fb.time,fb.TCC2,fb.time,fb.TCC3)
+            grid on, grid minor
+            xlabel('Time (s)')
+            ylabel('Temperature (ºF)')
+            title('Combustion Chamber Temperatures vs. Time - HF1')
+            legend('Injector','Pre-Comb Chamber','Post-Comb Chamber')
+        subplot(2,1,2)
+            plot(fb.time,fb.PTC1)
+            grid on, grid minor
+            xlabel('Time (s)')
+            ylabel('Tank Pressure (psia)')
+            title('Lower Tank Pressure vs. Time - HF1')
+    hold off
+    
     %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
     % 
     % 
