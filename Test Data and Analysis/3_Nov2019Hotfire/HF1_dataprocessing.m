@@ -125,7 +125,7 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
         legend('Raw','Smoothed')
 
     hold off  
-    %% Thrust and tank pressure vs. time
+    %% Ox Mass and tank pressure vs. time
     figure, hold on
         subplot(2,1,1)
             plot(fb.time,fb.LCR1)
