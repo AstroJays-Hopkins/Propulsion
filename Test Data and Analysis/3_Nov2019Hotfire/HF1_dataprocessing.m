@@ -9,13 +9,13 @@ clear, clc, close all
 
 ft = load('HF1_fulltest.mat');
 fb = load('HF1_fullburn.mat');
-nb = load('HF1_nomburn.mat');
+lp = load('HF1_nomburn.mat');
 
 
 % NOTE::::: 
 %      structure tag "ft" = full test data
 %      structure tag "fb" = full burn data (includes long trailoff)
-%      structure tag "nb" = portion of burn before blowdown (pulled from "ft")
+%      structure tag "lp" = liquid phase portion of burn before blowdown
 
 % ** this was done for ease of coding/shorthand **
 
@@ -29,9 +29,9 @@ nb = load('HF1_nomburn.mat');
     fb.dtime(1,1) = 0;
     fb.dtime(2:fb.l,1) = diff(fb.time);
 
-    nb.l = length(nb.LCR1);
-    nb.dtime(1,1) = 0;
-    nb.dtime(2:nb.l,1) = diff(nb.time);
+    lp.l = length(lp.LCR1);
+    lp.dtime(1,1) = 0;
+    lp.dtime(2:lp.l,1) = diff(lp.time);
 
 % Key Points in Burn
     fb.liqdepl = 106; % index corresponding to depletion of liquid in RT
@@ -41,12 +41,12 @@ nb = load('HF1_nomburn.mat');
     fb.mdot_ox(1,1) = 0;
     fb.mdot_ox(2:fb.l,1) = -diff(fb.LCR1)./fb.dtime(2:fb.l,1);
 
-    nb.mdot_ox(1,1) = 0;
-    nb.mdot_ox(2:nb.l,1) = -diff(nb.LCR1)./nb.dtime(2:nb.l,1);
+    lp.mdot_ox(1,1) = 0;
+    lp.mdot_ox(2:lp.l,1) = -diff(lp.LCR1)./lp.dtime(2:lp.l,1);
     
 % Thrust (total thrust = sum of the two thrust load cells)
     fb.thrust = fb.LCC1 + fb.LCC2;
-    nb.thrust = nb.LCC1 + nb.LCC2;
+    lp.thrust = lp.LCC1 + lp.LCC2;
 
 %% Ox Flow Calcs
 eng.d_injhole = 5/64; % [in]
@@ -271,7 +271,7 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
     % 
     % figure('Name', 'CdA'), hold on
     % 
-    %     plot(fb.time,nb.CdA)
+    %     plot(fb.time,lp.CdA)
     %     
     %     fb.Cd = fb.CdA/eng.A_inj;
     %     xlabel('Time (s)')
