@@ -19,7 +19,26 @@ lp = load('HF1_nomburn.mat');
 
 % ** this was done for ease of coding/shorthand **
 
+%% Engine Parameters
+
+% Fuel Grain
+    eng.rho_fuel = 0.033779; % density of HDPE [lbm/in^3]
+    eng.L = 38.64; % total initial fuel grain length [in.]
+    eng.r_in = 1; % initial inner radius of fuel [in.]
+    eng.r_out = 1.5; % outer radius of fuel [in.]
+
+% Injector
+    eng.d_injhole = 5/64; % [in]
+    eng.n_injholes = 14;
+    eng.A_injhole = pi*(eng.d_injhole^2)/4; % [in^2]
+    eng.A_inj = eng.n_injholes * eng.A_injhole; % [in^2]
+
+
 %% Creating important vars from data to use in calcs later on
+
+% Key Points in Burn 
+    fb.liqdepl = 106; % index corresponding to depletion of liquid in RT
+    fb.end = 158; % index corresponding to thrust hitting ~10% of the eyeballed avg. val during liq. phase of burn
 
 % var for easy referencing of length
     ft.l = length(ft.LCR1);
@@ -32,10 +51,6 @@ lp = load('HF1_nomburn.mat');
     lp.l = length(lp.LCR1);
     lp.dtime(1,1) = 0;
     lp.dtime(2:lp.l,1) = diff(lp.time);
-
-% Key Points in Burn
-    fb.liqdepl = 106; % index corresponding to depletion of liquid in RT
-    fb.end = 158; % index corresponding to thrust hitting ~10% of the eyeballed avg. val during liq. phase of burn
     
 % N2O Mass Flow Rates
     fb.mdot_ox(1,1) = 0;
@@ -49,10 +64,6 @@ lp = load('HF1_nomburn.mat');
     lp.thrust = lp.LCC1 + lp.LCC2;
 
 %% Ox Flow Calcs
-eng.d_injhole = 5/64; % [in]
-eng.n_injholes = 14;
-eng.A_injhole = pi*(eng.d_injhole^2)/4; % [in^2]
-eng.A_inj = eng.n_injholes * eng.A_injhole; % [in^2]
 
 % WARNING THAT THIS IS EFFECTIVELY TAKING THE CdA of the ENTIRE LOWER
 % PLUMBING LINES (NOT the injector)
@@ -68,19 +79,8 @@ for i = 1:fb.l
     end
 end
 
-%% (NEEDS WORK) Regression Calcs
 
-% **DISCLAIMER**
-% Because we actually ran out of HDPE to combust, these regression calcs
-% are incredibly sketchy
-
-% A total time to fuel depletion was estimated from the data, yielding a
-% rough value for average mdot.
-
-% This can then be used to get a rough value for average specific impulse
-
-
-%% Engine Performance Calcs
+%% Engine Calcs
 
 % Chamber Pressure
 fb.PchAvg.liq = mean(fb.PTC1(1:fb.liqdepl));
@@ -92,10 +92,10 @@ fb.SpentOx.liq = fb.LCR1(1) - fb.LCR1(fb.liqdepl);
 fb.SpentOx.ull = fb.LCR1(fb.liqdepl) - fb.LCR1(fb.end);
 fb.SpentOx.tot = fb.SpentOx.liq + fb.SpentOx.ull;
 
-% Ox. Mass Flow Rate
-fb.AvgMdotOx.liq = mean(fb.mdot_ox(1:fb.liqdepl));
-fb.AvgMdotOx.ull = mean(fb.mdot_ox(fb.liqdepl:fb.end));
-fb.AvgMdotOx.tot = mean(fb.mdot_ox(1:fb.end));
+% Ox. Mass Flow Rate ((m_fin - m_init) / deltat)
+fb.AvgMdotOx.liq = (fb.LCR1(1) - fb.LCR1(fb.liqdepl)) / fb.time(fb.liqdepl);
+fb.AvgMdotOx.ull = (fb.LCR1(fb.liqdepl) - fb.LCR1(fb.end)) / (fb.time(fb.end) - fb.time(fb.liqdepl));
+fb.AvgMdotOx.tot = (fb.LCR1(1) - fb.LCR1(fb.end)) /f b.time(fb.end);
 
 % Thrust
 fb.maxthrust.liq = max(fb.thrust(1:fb.liqdepl));
@@ -111,6 +111,33 @@ fb.totimpulse.liq = sum(fb.dtime(1:fb.liqdepl).*fb.thrust(1:fb.liqdepl));
 fb.totimpulse.ull = sum(fb.dtime(fb.liqdepl:fb.end).*fb.thrust(fb.liqdepl:fb.end));
 fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
 
+
+%% (SEE DISCLAIMER) Regression Calcs
+
+% **DISCLAIMER** ---------------
+% Because we actually ran out of HDPE to combust, these regression calcs
+% are incredibly sketchy
+
+% Ammount of fuel spent per phase (liq and vap injections) was calculated
+% by taking the total fuel spent and then saying that the fuel spent in
+% each of these two phases is weighted by the fraction of the total impulse
+% developed at this phase of the burn
+
+fb.fuelspent.tot = 4.93; % fuel spent over total burn (inital - measured final val) [lbm]
+fb.impulsefrac = fb.totimpulse.liq/fb.totimpulse.tot; % fraction of the total impulse that was generated during the liq phase [-]
+fb.fuelspent.liq = fb.impulsefrac*fb.fuelspent.tot;
+fb.fuelspent.ull = fb.fuelspent.tot - fb.fuelspent.liq;
+
+fb.r_ld = sqrt( (fb.fuelspent.liq / (eng.rho_fuel*pi*eng.L)) + (eng.r_in^2) ); % getting fuel inner rad @ liq depletion [in.]
+fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot over course of entire liq phase of burn [in/s]
+
+% From mass_ox vs. time plot we see we have an approx. linear rate of
+% decrease, allowing us to simplify to approx. constant mdot_ox during the
+% liq phase of the burn
+
+
+
+% **END OF DISCLAIMER RELATED CALCS**
 
 %% -------------------------------- Plots ------------------------------------- %%
     %% Thrust vs. time
@@ -168,27 +195,6 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
         grid on, grid minor
 
     hold off   
-    %% Plotting smoothed Chamber Pressures vs. not smoothed
-    figure('Name', 'Chamber P'), hold on
-
-        plot(fb.time, fb.PTC1, fb.time, smooth(fb.PTC1(1:201)));
-
-        xlabel('Time (s)')
-        ylabel('Pressure (psia)')
-        title('Chamber Pressure vs. Time - HF1')
-        legend('Raw','Smoothed')
-        grid on, grid minor
-
-    hold off  
-    %% Plotting smoothed mdot_ox vs. not smoothed
-    figure('Name', 'Chamber P'), hold on
-        plot(fb.time, fb.mdot_ox, fb.time, smooth(fb.mdot_ox));
-        xlabel('Time (s)')
-        ylabel('N_2O Mass Flow Rate (lbm/s)')
-        title('Oxidizer Mass Flow Rate vs. Time - HF1')
-        legend('Raw','Smoothed')
-        grid on, grid minor
-    hold off
     %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(2,1,1)
@@ -210,28 +216,27 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
     %% Plotting mdot and Pch & thrust vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(3,1,1)
-            plot(fb.time,smooth(fb.mdot_ox))
+            plot(fb.time,fb.mdot_ox)
             xlabel('Time (s)')
             ylabel('Oxidizer Mass Flow Rate (lbm/s)')
             grid on, grid minor
             title('(Smoothed) Oxidizer Flow Rate vs. Time - HF1')
             ylim([0 inf])
         subplot(3,1,2)
-            plot(fb.time, smooth(fb.PTC1));
+            plot(fb.time, fb.PTC1);
             xlabel('Time (s)')
             ylabel('Chamber Pressure (psia)')
             grid on, grid minor
             title('(Smoothed) Chamber Pressure vs. Time - HF1')
             legend('Raw')
         subplot(3,1,3)
-            plot(fb.time, smooth(fb.thrust));
+            plot(fb.time, fb.thrust);
             xlabel('Time (s)')
             ylabel('Thrust (lbf)')
             grid on, grid minor
             title('(Smoothed) Thrust vs. Time - HF1')
             legend('Raw')
     hold off 
-    
     %% Ullage and Liq Temps and tank pressure vs. time
     figure, hold on
         subplot(2,1,1)
@@ -248,7 +253,6 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
             ylabel('Tank Pressure (psia)')
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
-    
     %% Combustion Chamber Temps and Chamber pressure vs. time
     figure, hold on
         subplot(2,1,1)
@@ -265,7 +269,6 @@ fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
             ylabel('Tank Pressure (psia)')
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
-    
     %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
     % 
     % 
