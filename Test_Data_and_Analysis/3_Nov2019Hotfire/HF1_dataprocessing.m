@@ -7,6 +7,9 @@
 
 clear, clc, close all
 
+addpath functions
+addpath Test_Data_and_Analysis/3_Nov2019Hotfire
+
 ft = load('HF1_fulltest.mat');
 fb = load('HF1_fullburn.mat');
 lp = load('HF1_nomburn.mat');
@@ -95,7 +98,7 @@ fb.SpentOx.tot = fb.SpentOx.liq + fb.SpentOx.ull;
 % Ox. Mass Flow Rate ((m_fin - m_init) / deltat)
 fb.AvgMdotOx.liq = (fb.LCR1(1) - fb.LCR1(fb.liqdepl)) / fb.time(fb.liqdepl);
 fb.AvgMdotOx.ull = (fb.LCR1(fb.liqdepl) - fb.LCR1(fb.end)) / (fb.time(fb.end) - fb.time(fb.liqdepl));
-fb.AvgMdotOx.tot = (fb.LCR1(1) - fb.LCR1(fb.end)) /f b.time(fb.end);
+fb.AvgMdotOx.tot = (fb.LCR1(1) - fb.LCR1(fb.end)) /fb.time(fb.end);
 
 % Thrust
 fb.maxthrust.liq = max(fb.thrust(1:fb.liqdepl));
@@ -112,7 +115,7 @@ fb.totimpulse.ull = sum(fb.dtime(fb.liqdepl:fb.end).*fb.thrust(fb.liqdepl:fb.end
 fb.totimpulse.tot = fb.totimpulse.liq+fb.totimpulse.ull;
 
 
-%% (SEE DISCLAIMER) Regression Calcs
+%% (SEE DISCLAIMER BELOW) Regression Calcs
 
 % **DISCLAIMER** ---------------
 % Because we actually ran out of HDPE to combust, these regression calcs
@@ -143,13 +146,12 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
     %% Thrust vs. time
     figure('Name', 'Thrust'), hold on
 
-        plot(fb.time,fb.thrust, fb.time,smooth(fb.thrust));
+        plot(fb.time,fb.thrust);
 
         xlabel('Time (s)')
         ylabel('Thrust (lbf)')
         title('Thrust vs. Time - HF1')
         grid on, grid minor
-        legend('Raw','Smoothed')
 
     hold off  
     %% Ox Mass and tank pressure vs. time
@@ -193,6 +195,19 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
         title('Pressure vs. Time - HF1')
         legend('Tank Pressure','Chamber Pressure')
         grid on, grid minor
+
+    hold off
+    %% Plotting ox tank and chamber pressures (Liq Phase of Burn Only)
+    figure('Name', 'Tank & Chamber P'), hold on
+
+        plot(fb.time(1:fb.liqdepl), fb.PTR1(1:fb.liqdepl), fb.time(1:fb.liqdepl), fb.PTC1(1:fb.liqdepl));
+
+        xlabel('Time (s)')
+        ylabel('Pressure (psia)')
+        title('Pressures vs. Time - HF1 - Liq Phase of Burn')
+        legend('Tank Pressure','Chamber Pressure')
+        grid on, grid minor
+        ylim([0 max(fb.PTR1)])
 
     hold off   
     %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
