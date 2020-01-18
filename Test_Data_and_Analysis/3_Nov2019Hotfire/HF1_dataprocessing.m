@@ -66,22 +66,6 @@ lp = load('HF1_nomburn.mat');
     fb.thrust = fb.LCC1 + fb.LCC2;
     lp.thrust = lp.LCC1 + lp.LCC2;
 
-%% Ox Flow Calcs
-
-% WARNING THAT THIS IS EFFECTIVELY TAKING THE CdA of the ENTIRE LOWER
-% PLUMBING LINES (NOT the injector)
-
-fb.deltaP = fb.PTR1 - fb.PTC1; % diff in pressure from ox tank to CC (psi)
-
-for i = 1:fb.l
-    fb.rho_ox(i,1) = 0.000036127*N2O_NonSat_Lookup(FtoK(fb.TCR3(i)),psi2MPa(fb.PTR1(i)),"Density"); % density of n2o downstream of runtank converted to lbm/in^3
-    if fb.deltaP(i,1) < 0
-        fb.CdA(i,1) = 0;
-    else
-        fb.CdA(i,1) = fb.mdot_ox(i,1)./sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
-    end
-end
-
 
 %% Engine Calcs
 
@@ -141,6 +125,26 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
 
 
 % **END OF DISCLAIMER RELATED CALCS**
+
+%% Commented out discharge calcs
+% %% Ox Flow Calcs
+% 
+% % WARNING THAT THIS IS EFFECTIVELY TAKING THE CdA of the ENTIRE LOWER
+% % PLUMBING LINES (NOT the injector)
+% 
+% fb.deltaP = fb.PTR1 - fb.PTC1; % diff in pressure from ox tank to CC (psi)
+% 
+% for i = 1:fb.l
+%     fb.rho_ox(i,1) = 0.000036127*N2O_NonSat_Lookup(FtoK(fb.TCR3(i)),psi2MPa(fb.PTR1(i)),"Density"); % density of n2o downstream of runtank converted to lbm/in^3
+% %     if fb.deltaP(i,1) < 0
+% %         fb.CdA(i,1) = 0;
+% %     else
+% %         fb.CdA(i,1) = fb.mdot_ox(i,1)./sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
+% %     end
+%     fb.CdA(i,1) = fb.mdot_ox(i,1) ./ sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
+% end
+% 
+% fb.Cd = fb.CdA/eng.A_inj;
 
 %% -------------------------------- Plots ------------------------------------- %%
     %% Thrust vs. time
@@ -252,7 +256,7 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
             title('(Smoothed) Thrust vs. Time - HF1')
             legend('Raw')
     hold off 
-    %% Ullage and Liq Temps and tank pressure vs. time
+    %% Plotting Ullage and Liq Temps and tank pressure vs. time
     figure, hold on
         subplot(2,1,1)
             plot(fb.time,fb.TCR3, fb.time,fb.TCR1)
@@ -268,7 +272,7 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
             ylabel('Tank Pressure (psia)')
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
-    %% Combustion Chamber Temps and Chamber pressure vs. time
+    %% Plotting Combustion Chamber Temps and Chamber pressure vs. time
     figure, hold on
         subplot(2,1,1)
             plot(fb.time,fb.TCC1,fb.time,fb.TCC2,fb.time,fb.TCC3)
@@ -284,17 +288,19 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
             ylabel('Tank Pressure (psia)')
             title('Lower Tank Pressure vs. Time - HF1')
     hold off
-    %% (CURRENTLY COMMENTED OUT) plotting effective discharge area vs. time
-    % 
-    % 
-    % figure('Name', 'CdA'), hold on
-    % 
-    %     plot(fb.time,lp.CdA)
-    %     
-    %     fb.Cd = fb.CdA/eng.A_inj;
-    %     xlabel('Time (s)')
-    %     ylabel('Effective Discharge Area (in^2)')
-    %     title('Effective Discharge Area vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
-    %     grid on, grid minor
-    %     
-    % hold off
+    %% Commented out discharge plots
+%     %% Plotting effective discharge area vs. time
+%     figure('Name', 'CdA'), hold on
+%         subplot(2,1,1)
+%             plot(fb.time,fb.CdA)
+%             xlabel('Time (s)')
+%             ylabel('Effective Discharge Area (in^2)')
+%             title('Effective Discharge Area vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
+%             grid on, grid minor
+%         subplot(2,1,2)
+%             plot(fb.time,fb.Cd)
+%             xlabel('Time (s)')
+%             ylabel('Discharge Coefficient')
+%             title('Discharge Coefficient vs. Time - HF1 - TAKEN USING P_{TANK} b/c INJECT PT FAILED - USE WITH CAUTION')
+%             grid on, grid minor
+%     hold off
