@@ -126,25 +126,24 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
 
 % **END OF DISCLAIMER RELATED CALCS**
 
-%% Commented out discharge calcs
-% %% Ox Flow Calcs
-% 
-% % WARNING THAT THIS IS EFFECTIVELY TAKING THE CdA of the ENTIRE LOWER
-% % PLUMBING LINES (NOT the injector)
-% 
-% fb.deltaP = fb.PTR1 - fb.PTC1; % diff in pressure from ox tank to CC (psi)
-% 
-% for i = 1:fb.l
-%     fb.rho_ox(i,1) = 0.000036127*N2O_NonSat_Lookup(FtoK(fb.TCR3(i)),psi2MPa(fb.PTR1(i)),"Density"); % density of n2o downstream of runtank converted to lbm/in^3
-% %     if fb.deltaP(i,1) < 0
-% %         fb.CdA(i,1) = 0;
-% %     else
-% %         fb.CdA(i,1) = fb.mdot_ox(i,1)./sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
-% %     end
-%     fb.CdA(i,1) = fb.mdot_ox(i,1) ./ sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
-% end
-% 
-% fb.Cd = fb.CdA/eng.A_inj;
+%% Ox Flow Calcs
+
+% WARNING THAT THIS IS EFFECTIVELY TAKING THE CdA of the ENTIRE LOWER
+% PLUMBING LINES (NOT the injector)
+
+fb.deltaP = fb.PTR1 - fb.PTC1; % diff in pressure from ox tank to CC (psi)
+
+for i = 1:fb.l
+    fb.rho_ox(i,1) = 0.000036127*N2O_NonSat_Lookup(FtoK(fb.TCR3(i)),psi2MPa(fb.PTR1(i)),"Density"); % density of n2o downstream of runtank converted to lbm/in^3
+%     if fb.deltaP(i,1) < 0
+%         fb.CdA(i,1) = 0;
+%     else
+%         fb.CdA(i,1) = fb.mdot_ox(i,1)./sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
+%     end
+    fb.CdA(i,1) = fb.mdot_ox(i,1) ./ sqrt(2*32.2*12*fb.rho_ox(i,1).*fb.deltaP(i,1));
+end
+
+fb.Cd = fb.CdA/eng.A_inj;
 
 %% -------------------------------- Plots ------------------------------------- %%
     %% Thrust vs. time
@@ -217,20 +216,18 @@ fb.rdot_avg.liq = (eng.r_in - fb.r_ld) / fb.time(fb.liqdepl); % average rdot ove
     %% Plotting mdot and deltaP b/w OxTank and CC vs. time 
     figure('Name', 'mdot & dP'), hold on
         subplot(2,1,1)
-            plot(fb.time,fb.mdot_ox,fb.time,smooth(fb.mdot_ox))
+            plot(fb.time,fb.mdot_ox)
             xlabel('Time (s)')
             ylabel('Oxidizer Mass Flow Rate (lbm/s)')
             grid on, grid minor
             title('Oxidizer Flow Rate vs. Time - HF1')
-            legend('Raw','Smoothed')
             ylim([0 inf])
         subplot(2,1,2)
-            plot(fb.time, fb.deltaP,fb.time,smooth(fb.deltaP));
+            plot(fb.time, fb.deltaP)
             xlabel('Time (s)')
             ylabel('\DeltaP (psig)')
             grid on, grid minor
             title('Lower Tank-to-Chamber \Delta P vs. Time - HF1')
-            legend('Raw','Smoothed')
     hold off
     %% Plotting mdot and Pch & thrust vs. time 
     figure('Name', 'mdot & dP'), hold on
