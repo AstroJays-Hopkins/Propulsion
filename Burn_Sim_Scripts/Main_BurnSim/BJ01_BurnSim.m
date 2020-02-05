@@ -28,8 +28,8 @@
 % OPERATION GUIDE (How to Properly Use this Script to get Engine Performance):
 %
 % - sim.flight = set this to:
-%                       - TRUE if want to simulate a simple trajectory,
-%                       - FALSE this will simply maintain initial altitude for
+%                  - TRUE if want to simulate a simple trajectory,
+%                  - FALSE this will simply maintain initial altitude for
 %                         entire burn
 % -----------------------
 % -----------------------
@@ -85,14 +85,14 @@ RT.bulk.height = 3.441666667 /Conv.MtoFt; % total height of internal volume of R
 InjLine.length1 = 0 / Conv.MtoFt; % length of first segment of vent line (the vertical portion) [ft --> m]
 InjLine.length2 = 0 / Conv.MtoFt; % length of 2nd segment of vent line (the horizontal portion) [ft --> m]
 InjLine.length3 = 0 / Conv.MtoFt; % length of outlet to amb segment of vent line (the horizontal portion) [ft --> m]
+
 InjLine.CdA = 0.000129511324641318 / (Conv.MtoFt^2); % effective discharge area of injector line [ft^2 --> m^2]
 % ------- CHANGE CdA^^
 
 % ------ Injector Geometry & Flow Coefficients ------ %
 
 
-% ------ Fuel Properties & Geometry ------ %
-CC.fuel.OuterR = 1.5 / Conv.MtoIn; % outer radius of the fuel [in --> m]
+% ------ Fuel Properties ------ %
 CC.fuel.rho = 935; %[kg/m^3] Density of HDPE
 
 % ------ Nozzle Geometry ------ %
@@ -115,9 +115,12 @@ amb.temp = FtoK(75); % ambient temperature [ºF --> K]
 
 % ------ Run Tank Init Conditions ------ %
 RT.bulk.mass = 30/Conv.KGtoLbm; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
-RT.liq.temperature = FtoK(70); % initial temperature of bulk N2O liquid [°F-->K]
+RT.liq.temperature = FtoK(53); % initial temperature of bulk N2O liquid [°F-->K]
+RT.vap.temperature = FtoK(70); % initial temperature of bulk N2O liquid [°F-->K]
+
 
 % ------ Fuel & Comb Chamber Init Conditions & Efficiencies ------ %
+CC.fuel.OuterR = 1.5 / Conv.MtoIn; % outer radius of the fuel [in --> m]
 CC.fuel.r = 0.99 / Conv.MtoIn; % initial inner radius of solid fuel port [in --> m]
 CC.fuel.L = 38.64000000 / Conv.MtoIn; % length of fuel [in --> m]
 CC.cstarEfficiency = 1;
@@ -130,12 +133,12 @@ Nozzle.throat.dia = 0.966 / Conv.MtoIn; % throat diameter [in-->m]
 Nozzle.exit.dia = 2.171 / Conv.MtoIn; % exit diameter [in-->m]
 
 %% 3. Simulation Config 
-sim.flight = true; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
+sim.flight = false; % setting if a static hotfire or a flight sim ("false" and "true" respectively) 
 sim.perfplot = true;
 
 sim.dt = 0.025; % delta-t we use for our time-stepping simulation
 
-sim.P0tolerance = 100; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
+sim.P0tolerance = 5; % setting allowable deviation of chamber pressure guess from the chamber pressure calculated via nozzle theory
 sim.P0change = 0.001; % if P0guess and P0 calculated deviate from each other greater than the tolerance, this value gets new guess by multiplying old guess by 1 +/- this values
 
 %% 4. Initialization of Sim
@@ -154,9 +157,13 @@ Nozzle.exit.area = pi*(Nozzle.exit.dia^2)/4; % calculating nozzle exit area [m^2
 Nozzle.ER = Nozzle.exit.area/Nozzle.throat.area; % calculating nozzle expansion ratio
 syms PeP0
     
-% initial oxidizer tank thermo
+% initial oxidizer tank thermo.
+
+% NEEDS TO BE UPDATED TO USE NON-SAT LOOKUP FUNCTION
 RT.liq.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "density"); % looking up density of N2O liq phase [kg/m^3]
-RT.vap.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 1, "density"); % looking up density of N2O vapor phase [kg/m^3]
+RT.liq.satpress = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "pressure")/1000; % sat pressure assumed for initial pressure [kPa -> MPa]
+RT.vap.rho = N2O_NonSat_Lookup(RT.vap.temperature, RT.liq.satpress, "density"); % looking up density of N2O vapor phase [kg/m^3]
+
 RT.liq.volfrac = ((RT.bulk.mass/RT.bulk.vol) - RT.vap.rho)/(RT.liq.rho - RT.vap.rho); % calculating initial volume fraction of liquid phase in RT
 RT.vap.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
 RT.liq.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of liquid phase of oxidizer [kg]
@@ -165,7 +172,7 @@ RT.vap.mass = RT.liq.volfrac*RT.bulk.vol*RT.liq.rho; % mass of vapor phase of ox
 % calculating vehicle mass
 Rocket.mass.total = RT.bulk.mass + CC.fuel.mass + Rocket.mass.dry;
 
-%% 5. Main Sim Loop
+%% 5. Main Sim Loop [ NEEDS TO BE UPDATED TO MODEL COMBUSTION DURING N2O VAPOR PHASE OF BURN AS WELL ]
 while(sim.propellant == true) % simulation runs as long as there's both fuel and oxidizer left in the engine
     
     if i ~= 1   % setting up next iteration (time-marching)
@@ -177,11 +184,17 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     end 
     amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
 
-    % state in RT
-    RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
-    RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
-    RT.vap.rho(i) = N2Olookup("temperature",RT.liq.temperature-273.15,1,"density"); % assuming saturated liquid, getting density [kg/m^3]
+    % state in RT (Where Tank Thermo Stuff will be added in)
+    RT.liq.temperature(i) = RT.liq.temperature(i-1);
+    RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature(i)-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
+    RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature(i)-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
+    RT.liq.satpress(i) = N2Olookup("temperature", RT.liq.temperature(i)-273.15, 0, "pressure"); % sat pressure assumed for initial pressure [MPa]
+    RT.vap.temperature(i) = RT.vap.temperature(i-1);
+    RT.vap.rho(i) = N2O_NonSat_Lookup(RT.vap.temperature(i), RT.liq.satpress(i), "density"); % looking up density of N2O vapor phase [kg/m^3]
     
+    RT.liq.volfrac(i) = ((RT.bulk.mass(i)/RT.bulk.vol) - RT.vap.rho(i))/(RT.liq.rho(i) - RT.vap.rho(i)); % calculating initial volume fraction of liquid phase in RT
+    RT.vap.volfrac(i) = 1 - RT.liq.volfrac(i); % calculating initial volume fraction of vapor phase in RT
+
     % chamber pressure guess
     if i == 1
         CC.P0guess(i) = 400*Conv.PSItoPa; % initial chamber pressure guess of 400 psi [psi-->Pa]
@@ -194,7 +207,12 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     sim.P0converge = false;
     while sim.P0converge == 0
         % mass flow rate & flux
-        CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
+        if RT.liq.mass(i) <= 0  
+            CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.vap.rho(i)*(RT.pressure(i)-CC.P0guess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
+        else
+            CC.mdot.ox(i) = InjLine.CdA * sqrt( 2*RT.liq.rho(i)*(RT.pressure(i)-CC.P0guess(i)) ); % mass flow rate of oxidizer into combustion chamber [kg/s]
+        end
+        
         CC.oxflux(i) = CC.mdot.ox(i)/(pi*(CC.fuel.r(i)^2)); % oxidizer mass flux in fuel port[kg/s-m^2]
 
         % fuel regression & fuel flow rate + resulting Ox/Fuel Ratio (OFR)
@@ -235,10 +253,12 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     Nozzle.throat.u(i) = Nozzle.throat.c(i); % M=1 at throat
     
     % Nozzle Exhaust Conditions
+    
     PrFnNumer = (2/(CC.gamma(i)+1))^(1/(CC.gamma(i)-1));
     PrFnDenom1 = PeP0^(1/CC.gamma(i));
     PrFnDenom2 = sqrt(((CC.gamma(i)+1)/(CC.gamma(i)-1))*(1 - PeP0^((CC.gamma(i)-1)/CC.gamma(i))));
     PrFn = (Nozzle.ER == PrFnNumer / (PrFnDenom1*PrFnDenom2));
+    
     Nozzle.exit.P(i) = eval(vpasolve(PrFn,PeP0))*CC.P0(i);
     Nozzle.exit.T(i) = CC.T0(i) / ((CC.P0(i)/Nozzle.exit.P(i))^((CC.gamma(i)-1)/CC.gamma(i))); % calculating temperature at nozzle exit [K]
     Nozzle.exit.u(i) = sqrt(((2*CC.gamma(i))/(CC.gamma(i)-1))*CC.R(i)*CC.T0(i)*(1-((Nozzle.exit.P(i)/CC.P0(i))^((CC.gamma(i)-1)/CC.gamma(i))))); % calculating nozzle exit velocity [m/s]
