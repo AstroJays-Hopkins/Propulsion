@@ -252,6 +252,7 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     % Calculating specific impulse
     Engine.Isp(i) = F.thrust(i)./(amb.g0.*CC.mdot.total(i)); % [s]
     
+    % Flight sim for this step
     if sim.flight == true
         amb.rho(i) = densitylookup_SI(amb.alt(i)); % getting freestream density [kg/m^3]
         amb.T(i) = amb.P(i)/(amb.rho(i)*amb.R); % calculating ambient temperature via ideal gas for dry air [K]
@@ -286,7 +287,7 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     end
 end
 
-% Continuing flight sim
+% Continuing flight sim after engine burnout
 if sim.flight == true
 
     sim.climbing = true;
