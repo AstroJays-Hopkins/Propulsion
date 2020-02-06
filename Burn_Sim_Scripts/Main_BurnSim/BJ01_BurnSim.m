@@ -111,7 +111,7 @@ amb.area = 3.1415 * 0.0889^2; %7in DIA, cross sectional area of rocket
 % ------ Ambient Init Conditions ------ %
 amb.alt = 152/Conv.MtoFt; % altitude above sea-level at start of burn [ft --> m]
 amb.vel = 0; % zero inital velocity
-amb.temp = FtoK(75); % ambient temperature [ºF --> K]
+amb.temp = FtoK(53); % ambient temperature [ºF --> K]
 
 % ------ Run Tank Init Conditions ------ %
 RT.bulk.mass = 30/Conv.KGtoLbm; % initial total mass of N2O in RT (both liquid and ullage) [lbm --> kg]
@@ -162,7 +162,7 @@ syms PeP0
 % NEEDS TO BE UPDATED TO USE NON-SAT LOOKUP FUNCTION
 RT.liq.rho = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "density"); % looking up density of N2O liq phase [kg/m^3]
 RT.liq.satpress = N2Olookup("temperature", RT.liq.temperature-273.15, 0, "pressure")/1000; % sat pressure assumed for initial pressure [kPa -> MPa]
-RT.vap.rho = N2O_NonSat_Lookup(RT.vap.temperature, RT.liq.satpress, "density"); % looking up density of N2O vapor phase [kg/m^3]
+RT.vap.rho = N2O_NonSat_Lookup(RT.vap.temperature, RT.liq.satpress, "Density"); % looking up density of N2O vapor phase [kg/m^3]
 
 RT.liq.volfrac = ((RT.bulk.mass/RT.bulk.vol) - RT.vap.rho)/(RT.liq.rho - RT.vap.rho); % calculating initial volume fraction of liquid phase in RT
 RT.vap.volfrac = 1 - RT.liq.volfrac; % calculating initial volume fraction of vapor phase in RT
@@ -178,19 +178,30 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     if i ~= 1   % setting up next iteration (time-marching)
         t(i) = t(i-1) + sim.dt;
         CC.fuel.r(i) = CC.fuel.r(i-1) - CC.fuel.rdot(i-1)*sim.dt;
-        RT.liq.mass(i) = RT.liq.mass(i-1) - CC.mdot.ox(i-1)*sim.dt;
+        if RT.liq.mass(i-1) <= 0  
+            RT.vap.mass(i) = RT.vap.mass(i-1) - CC.mdot.ox(i-1)*sim.dt;
+            RT.liq.mass(i) = RT.liq.mass(i-1);
+            RT.vapphase(i) = true;
+        else
+            RT.liq.mass(i) = RT.liq.mass(i-1) - CC.mdot.ox(i-1)*sim.dt;
+            RT.vap.mass(i) = RT.vap.mass(i-1);
+            RT.vapphase(i) = false;
+        end
+        RT.bulk.mass(i) = RT.liq.mass(i) + RT.vap.mass(i);
         CC.fuel.mass(i) = CC.fuel.mass(i-1) - CC.mdot.fuel(i-1)*sim.dt;
         Rocket.mass.total(i) = RT.liq.mass(i) + CC.fuel.mass(i) + Rocket.mass.dry;
     end 
     amb.P(i) = pressurelookup_SI(amb.alt(i)); % getting ambient pressure at current altitude [Pa]
 
     % state in RT (Where Tank Thermo Stuff will be added in)
-    RT.liq.temperature(i) = RT.liq.temperature(i-1);
+    if i ~= 1
+        RT.liq.temperature(i) = RT.liq.temperature(i-1);
+        RT.vap.temperature(i) = RT.vap.temperature(i-1);
+    end
     RT.pressure(i) = N2Olookup("temperature",RT.liq.temperature(i)-273.15,0,"pressure")*1000; % assuming saturated liquid, getting pressure [kPa-->Pa]
     RT.liq.rho(i) = N2Olookup("temperature",RT.liq.temperature(i)-273.15,0,"density"); % assuming saturated liquid, getting density [kg/m^3]
-    RT.liq.satpress(i) = N2Olookup("temperature", RT.liq.temperature(i)-273.15, 0, "pressure"); % sat pressure assumed for initial pressure [MPa]
-    RT.vap.temperature(i) = RT.vap.temperature(i-1);
-    RT.vap.rho(i) = N2O_NonSat_Lookup(RT.vap.temperature(i), RT.liq.satpress(i), "density"); % looking up density of N2O vapor phase [kg/m^3]
+    RT.liq.satpress(i) = N2Olookup("temperature",RT.liq.temperature(i)-273.15, 0, "pressure")/1000; % sat pressure assumed for initial pressure [MPa]
+    RT.vap.rho(i) = N2O_NonSat_Lookup(RT.vap.temperature(i),RT.liq.satpress(i)+0.2, "Density"); % looking up density of N2O vapor phase [kg/m^3]
     
     RT.liq.volfrac(i) = ((RT.bulk.mass(i)/RT.bulk.vol) - RT.vap.rho(i))/(RT.liq.rho(i) - RT.vap.rho(i)); % calculating initial volume fraction of liquid phase in RT
     RT.vap.volfrac(i) = 1 - RT.liq.volfrac(i); % calculating initial volume fraction of vapor phase in RT
@@ -290,7 +301,7 @@ while(sim.propellant == true) % simulation runs as long as there's both fuel and
     % checking if either of the propellant masses in the next time step is
     % negative, signaling to end the simulation of the burn if this
     % condition is met
-    if RT.liq.mass(i) <= 0
+    if RT.vap.mass(i) <= 0
         sim.ox = false;
         sim.propellant = false;
         i_burnout = i
@@ -348,11 +359,7 @@ if sim.flight == true
             i = i + 1;
         end
         
-    end
-    
-else
-    amb.vel = amb.vel(1:i);
-    amb.alt = amb.alt(1:i);
+    end  
     
 end
 

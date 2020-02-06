@@ -55,4 +55,3 @@ dv(2) = interp1(Press,table2array(upp.(ub)(:,varind)),press);
 val_desired = interp1(tempinterp,dv,temp);
 
 end
-
