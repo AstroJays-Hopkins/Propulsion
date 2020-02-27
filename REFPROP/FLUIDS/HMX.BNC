@@ -1,0 +1,259 @@
+HMX               !Mnemonic for mixture model, must match hfmix on call to SETUP.
+4                 !Version number
+
+! Changelog:
+! ---------
+! 05-14-19 EWL, Remove all but the CH4/N2 and N2/O2 mixing parameters.
+
+
+#BNC              !Binary mixing coefficients
+BNC
+? Binary mixing coefficients for the various mixing rules used with the HMX model:
+?
+? KWi:  (i = 1,2,3,...,A,B,...)  --->  Kunz-Wagner mixing rules
+?   model     BetaT     GammaT    BetaV     GammaV    Fij      not used
+?
+? GGi:  (i = same as KWi)        --->  Official GERG-2008 mixing rules
+?   model     BetaT     GammaT    BetaV     GammaV    Fij      not used
+?
+? LJi:  (i = 1,2,3)              --->  Lemmon-Jacobsen mixing rules
+?   model     zeta       xi       Fpq       beta      gamma    not used
+?
+? TR1:                           --->  Tillner-Roth mixing rules
+?   model     Kv        alpha    not used  not used  not used  not used
+?
+? LIN:                           --->  Linear mixing rules
+?   model     Kt         Kv      not used  not used  not used  not used
+?
+? TRN:                           --->  Transport mixing rules
+?   model     a1         a2        a3        a4        a5        a6
+?
+? ST1:                           --->  Surface tension rules
+?   model     a1         a2        a3        a4        a5        a6
+?
+? PR1 (Peng-Robinson):           --->  Peng-Robinson mixing rules
+?   model     kij      not used  not used  not used  not used  not used
+?
+? If a binary mixture contains both GG and KW (or LJ) mixing rules, the GG line must
+?  be placed first, and then the KW line.  If the GERG08 routine has been called,
+?  then only the GG model only is read, thus implementing the full GERG-2008 model.
+?
+? Coefficients for binary critical lines (where the # sign is a number from 1 to 7):
+?
+?  TC#:  (type I mixtures)
+?    model     a1        a2        a3        a4        a5        a6
+?       Where Tc of the mixture is calculated with the following equation:
+?       Tc = x1*Tc1 + x2*Tc2 + x2*(a1*x1 + a2*x1**2 + a3*x1**3 + a4*x1**4 + a5*x1**5 + a6*x1**6)
+?
+?  VC#:  (type I mixtures)
+?    model     a1        a2        a3        a4        a5        a6
+?       Where Vc of the mixture is calculated with the following equation:
+?       Vc = x1*Vc1 + x2*Vc2 + x2*(a1*x1 + a2*x1**2 + a3*x1**3 + a4*x1**4 + a5*x1**5 + a6*x1**6)
+?
+? Format for a binary pair:
+? Line 1:  Comments beginning with '?' (these are read by Fortran and displayed by GUI)
+?      2:  Additional comments beginning with '?'  (multiple lines with a ? can be used)
+?      3:  HASH_1 / HASH_2
+?      4:     model  binary parameters
+?      5:     model  Tc line parameters
+?      6:     model  Vc line parameters
+?      7:     model  Pr line parameters
+?      8:  separator line ('!')
+? Only lines 3 and 8 are required
+?
+?
+?
+? Selection of mixture model when more than one is present:
+?
+?   If the GERG-08 model is off, The last line in the HMX.BNC for a given
+?   binary pair will always be the one used.
+?
+?   If the GERG-08 option is on, the line containing GG is used if available.
+?   New mixture models always follow the lines with GG in the HMX.BNC.
+?
+? Order of sorting of binary pairs:
+?
+?   1. Each binary pair shall be internally sorted by normal boiling point temperatures of the fluids.
+?      For instance for the pair hydrogen + water, hydrogen has a lower NBP, therefore the order is
+?      hydrogen, water.
+?
+?      Exception: Methane is always the first fluid listed in the binary pair.
+?
+?   2. The binary pairs (once internally sorted) shall be first sorted by the NBP of the first component, then,
+?      by the NBP of the second component.
+?
+?      Note: If you need to swap the order of a binary pair, the kij (for PR), Fij, gammaT, and gammaV values do
+?            not need to be adjusted, but beta_{ij} = 1/beta_{ji}, thus the betaT and betaV values need to be
+?            modified, which will introduce a small discrepancy from tabulated values.  Also, the coefficients
+?            for the critical line (TCx, VCx) need to be refitted.  Other models are mostly symmetric so no swapping
+?            of parameters is needed.
+?
+? Here is a sample entry (the block must start in column 1, not column 3 as shown below):
+?
+? !
+? ?Rxxx/Rxxx
+? ?Example setup for a new mixture
+? HASH_1/HASH_2
+?    KW0    1.          1.          1.          1.          0.        0.
+?    TC1    0.          0.          0.          0.          0.        0.
+?    VC1    0.          0.          0.          0.          0.        0.
+? !
+?
+!
+?Methane/Nitrogen                                          [C1/N2]
+?Kunz and Wagner (2007)
+  8ae7a700/edbdc8e0
+    KW3      0.99809883     0.979273013    0.998721377    1.013950311    1.             0.             0. 0. 0. 0. 0. 0.
+    TC1      8.2656641      8.4386197    -72.010236     295.68631     -432.5271       214.03443        0. 0. 0. 0. 0. 0.
+    VC1      0.030785658   -0.40640575     1.165118      -1.4324897      0.71471081    -0.060260427    0. 0. 0. 0. 0. 0.
+    TRN     -0.3594         0.9076        -6.1172e-2      3.9842e-2      0.03           0.             0. 0. 0. 0. 0. 0.
+    PR1      0.0311         0.             0.             0.             0.             0.             0. 0. 0. 0. 0. 0.
+    ST1      0.085          0.             0.             0.             0.             0.             0. 0. 0. 0. 0. 0.
+!
+?Nitrogen/Oxygen                                           [N2/O2]
+?Kunz and Wagner (2007)
+  edbdc8e0/edc36840
+    KW0      0.997190589    0.995157044    0.99952177     0.997082328    0.             0.             0. 0. 0. 0. 0. 0.
+    TC1      2.4442564     -1.3286105     -2.1788958     15.020532     -20.000629      10.535041       0. 0. 0. 0. 0. 0.
+    VC1     -0.021747863    0.054592723   -0.12438063     0.12481413    -0.033799775   -0.017312933    0. 0. 0. 0. 0. 0.
+    PR1     -0.0119         0.             0.             0.             0.             0.             0. 0. 0. 0. 0. 0.
+    ST1      0.04           0.             0.             0.             0.             0.             0. 0. 0. 0. 0. 0.
+!
+
+
+
+#MXM              !Mixture model specification
+XR0  Reducing functions only
+?
+?```````````````````````````````````````````````````````````````````````````````
+?Mixture model for binaries that are based on mixing rules for the reducing
+? parameters only.  Excess functions cannot be included in this model.
+?
+?The mixing rules are based on those of Kunz and Wagner (2008), but all binaries
+? that use the XR0 rules were developed by others.
+?
+!```````````````````````````````````````````````````````````````````````````````
+ BetaT    GammaT   BetaV    GammaV  not used not used      !Descriptors for binary-specific parameters
+  1.0      1.0      1.0      1.0      0.0      0.0         !Default values (i.e. ideal-solution)
+  0 0      0        0 0      0 0      0 0      0 0         !# terms and # coefs/term for normal terms, Kunz-Wagner terms, and Gaussian terms.  3rd column is not used.
+
+
+
+
+#MXM              !Mixture model specification
+KW0  Kunz and Wagner model for hydrocarbon mixtures
+?
+?```````````````````````````````````````````````````````````````````````````````
+?Kunz, O., Klimeck, R., Wagner, W., Jaeschke, M.
+? The GERG-2004 Wide-Range Equation of State for Natural Gases and Other Mixtures.
+? GERG Technical Monograph 15. Fortschr.-Ber. VDI, VDI-Verlag, Duesseldorf, 2007.
+?
+?Kunz, O. and Wagner, W.
+? The GERG-2008 Wide-Range Equation of State for Natural Gases and Other Mixtures:
+? An Expansion of GERG-2004.
+? J. Chem. Eng. Data, 57(11):3032-3091, 2012.
+?
+!```````````````````````````````````````````````````````````````````````````````
+ BetaT    GammaT   BetaV    GammaV    Fij    not used      !Descriptors for binary-specific parameters
+  1.0      1.0      1.0      1.0      0.0      0.0         !Default values (i.e. ideal-solution)
+ 10 4      0        0 0      0 0      0 0      0 0         !# terms and # coefs/term for normal terms, Kunz-Wagner terms, and Gaussian terms.  3rd column is not used.
+  2.5574776844118         1.0     1.    0.                 !a(i),t(i),d(i)
+ -7.9846357136353         1.55    1.    0.
+  4.7859131465806         1.7     1.    0.
+ -0.73265392369587        0.25    2.    0.
+  1.3805471345312         1.35    2.    0.
+  0.28349603476365        0.0     3.    0.
+ -0.49087385940425        1.25    3.    0.
+ -0.10291888921447        0.0     4.    0.
+  0.11836314681968        0.7     4.    0.
+  0.000055527385721943    5.4     4.    0.
+
+
+
+
+#MXM              !Mixture model specification
+KW3  Kunz and Wagner model for the methane-nitrogen mixture
+?
+?```````````````````````````````````````````````````````````````````````````````
+?Kunz, O., Klimeck, R., Wagner, W., Jaeschke, M.
+? The GERG-2004 Wide-Range Equation of State for Natural Gases and Other Mixtures.
+? GERG Technical Monograph 15. Fortschr.-Ber. VDI, VDI-Verlag, Duesseldorf, 2007.
+?
+?Kunz, O. and Wagner, W.
+? The GERG-2008 Wide-Range Equation of State for Natural Gases and Other Mixtures:
+? An Expansion of GERG-2004.
+? J. Chem. Eng. Data, 57(11):3032-3091, 2012.
+?
+?Methane-Nitrogen
+?
+!```````````````````````````````````````````````````````````````````````````````
+ BetaT    GammaT   BetaV    GammaV    Fij    not used      !Descriptors for binary-specific parameters
+  1.0      1.0      1.0      1.0      0.0      0.0         !Default values (i.e. ideal-solution)
+  2 4      0        7 7      0 0      0 0      0 0         !# terms and # coefs/term for normal terms, Kunz-Wagner terms, and Gaussian terms.  3rd column is not used.
+ -0.0098038985517335      0.0     1.    0.                 !a(i),t(i),d(i),eta(i),epsilon(i),beta(i),gamma(i)
+  0.00042487270143005     1.85    4.    0.
+ -0.034800214576142       7.85    1.    1.0    0.5    1.0    0.5
+ -0.13333813013896        5.4     2.    1.0    0.5    1.0    0.5
+ -0.011993694974627       0.0     2.    0.25   0.5    2.5    0.5
+  0.069243379775168       0.75    2.    0.0    0.5    3.0    0.5
+ -0.31022508148249        2.8     2.    0.0    0.5    3.0    0.5
+  0.24495491753226        4.45    2.    0.0    0.5    3.0    0.5
+  0.22369816716981        4.25    3.    0.0    0.5    3.0    0.5
+
+
+
+
+#MXM              !Mixture model specification
+LIN  Linear mixing rules modified by Kt and Kv
+?
+?```````````````````````````````````````````````````````````````````````````````
+?McLinden, M.O. and Klein, S.A.,
+? "A next generation refrigerant properties database,"
+? 6th International Refrigeration Conference at Purdue,
+? July 23-26, West Lafayette, IN, 1996.
+?
+?A mixture Helmholtz free energy (HMX) model for refrigerant mixtures employing
+? simple linear mixing rules to define the reducing parameters.  The parameter
+? Kt is applied to the arithmetic mean of the component critical temperatures:
+?
+?  Treducing = sum(i=1,n) {xi * Tcrit_i}
+?            + sum(j=i+1,n) sum(i=1,n-1) {(Kt - 1) xi xj 0.5*(Tcrit_i + Tcrit_j)}
+?
+? The parameter Kv is similarly applied to the arithmetic mean of the
+? component critical volumes:
+?
+?  Vreducing = sum(i=1,n) {xi * Vcrit_i}
+?            + sum(j=i+1,n) sum(i=1,n-1) {(Kv - 1) xi xj 0.5*(Vcrit_i + Vcrit_j)}
+?
+?  rho_reducing = 1/Vreducing.
+?
+!```````````````````````````````````````````````````````````````````````````````
+   Kt       Kv    not used not used not used not used      !Descriptors for binary-specific parameters
+  1.0      1.0      0.0      0.0      0.0      0.0         !Default values (i.e. ideal-solution)
+  1 4      0        0 0      0 0      0 0      0 0         !# terms and # coefs/term for normal terms, Kunz-Wagner terms, and Gaussian terms.  3rd column is not used.
+  1.0      0.       1.       0.                            !a(i),t(i),d(i),e(i)
+
+
+
+
+@MXM              !Mixture model specification
+i=j  Trivial case--identical components
+?
+?```````````````````````````````````````````````````````````````````````````````
+?This represents the trivial mixture case of identical components.  It is
+? included for use with some of the summations involved in mixture calculations.
+? This model should not be specified for any binary pair.
+?
+!```````````````````````````````````````````````````````````````````````````````
+not used not used not used not used not used not used      !Descriptors for binary-specific parameters
+  0.0      0.0      0.0      0.0      0.0      0.0         !Default values (i.e. ideal-solution)
+  1 4      0        0 0      0 0      0 0      0 0         !# terms and # coefs/term for normal terms, Kunz-Wagner terms, and Gaussian terms.  3rd column is not used.
+  1.0      0.       1.       0.                            !a(i),t(i),d(i),e(i)
+
+
+
+
+
+@END
+c        1         2         3         4         5         6         7         8
+c2345678901234567890123456789012345678901234567890123456789012345678901234567890
